@@ -111,12 +111,12 @@ feature_importance = pd.DataFrame({
 
 logger.info(feature_importance)
 
-feature  importance
-0         co2_lag1       0.452
-1  co2_rolling_mean_3y    0.218
-2         co2_diff1       0.156
-3         co2_lag2       0.089
-...
+# feature  importance
+# 0         co2_lag1       0.452
+# 1  co2_rolling_mean_3y    0.218
+# 2         co2_diff1       0.156
+# 3         co2_lag2       0.089
+# ...
 
 
 # Grid search for optimal parameters
@@ -162,10 +162,10 @@ logger.info("Model weights:")
 for i, name in enumerate(['LSTM', 'XGBoost', 'SARIMA']):
     logger.info(f"  {name}: {meta_model.coef_[i]:.3f}")
 
-Model weights:
-  LSTM: 0.283
-  XGBoost: 0.512
-  SARIMA: 0.205
+# Model weights:
+#   LSTM: 0.283
+#   XGBoost: 0.512
+#   SARIMA: 0.205
 
 # Retrain on full dataset
 full_model = xgb.XGBRegressor(n_estimators=100, max_depth=3)
@@ -188,14 +188,14 @@ forecast_df = pd.DataFrame({
 })
 logger.info(forecast_df)
 
-Year  Predicted_CO2
-0  2024    1,847,234,219
-1  2025    1,792,441,087
-2  2026    1,741,203,944
-3  2027    1,693,182,229
-4  2028    1,647,058,917
-5  2029    1,602,538,273
-6  2030    1,559,344,961
+# Year  Predicted_CO2
+# 0  2024    1,847,234,219
+# 1  2025    1,792,441,087
+# 2  2026    1,741,203,944
+# 3  2027    1,693,182,229
+# 4  2028    1,647,058,917
+# 5  2029    1,602,538,273
+# 6  2030    1,559,344,961
 
 
 # Train models for 10th, 50th, and 90th percentiles

@@ -13,13 +13,6 @@ from sklearn.preprocessing import StandardScaler
 import time
 import csv
 
-# Import Tufte plotting utilities
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from tda_utils import setup_tufte_plot, TufteColors
-
-
 def generate_load_curve(base_load_mw=9300, date=None):
     """Generate realistic 24-hour load curve."""
     if date is None:

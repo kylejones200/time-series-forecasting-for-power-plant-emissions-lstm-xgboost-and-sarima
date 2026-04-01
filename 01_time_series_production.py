@@ -19,13 +19,6 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 
-# Import Tufte plotting utilities
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from tda_utils import setup_tufte_plot, TufteColors
-
-
 # Configuration
 DATA_PATH = Path('../../egrid_all_plants_1996-2023.parquet')
 TRAIN_END_YEAR = 2020
@@ -258,6 +251,8 @@ def visualize_results(data, models, ensemble, test_start_year):
     ax1.set_ylabel('CO₂ Emissions (Billion Tons)', fontsize=12, fontweight='bold')
     ax1.set_title('Model Comparison', fontsize=14, fontweight='bold')
     ax1.legend(fontsize=10)
+    ax1.grid(True, alpha=0.3)
+    
     # Plot 2: Model performance
     ax2 = axes[0, 1]
     model_names = ['LSTM', 'XGBoost', 'SARIMA', 'Ensemble']
@@ -267,6 +262,8 @@ def visualize_results(data, models, ensemble, test_start_year):
                    alpha=0.8, edgecolor='black', linewidth=1.5)
     ax2.set_ylabel('MAE (Billion Tons)', fontsize=12, fontweight='bold')
     ax2.set_title('Model Performance', fontsize=14, fontweight='bold')
+    ax2.grid(True, alpha=0.3, axis='y')
+    
     # Add values on bars
     for bar, mae in zip(bars, maes):
         height = bar.get_height()
@@ -282,6 +279,8 @@ def visualize_results(data, models, ensemble, test_start_year):
     ax3.set_xlabel('Year', fontsize=12, fontweight='bold')
     ax3.set_ylabel('Residual (Billion Tons)', fontsize=12, fontweight='bold')
     ax3.set_title('Ensemble Residuals', fontsize=14, fontweight='bold')
+    ax3.grid(True, alpha=0.3)
+    
     # Plot 4: Error distribution
     ax4 = axes[1, 1]
     ax4.hist(residuals/1e9, bins=10, color='#9b59b6', alpha=0.7, edgecolor='black')
@@ -289,6 +288,8 @@ def visualize_results(data, models, ensemble, test_start_year):
     ax4.set_xlabel('Residual (Billion Tons)', fontsize=12, fontweight='bold')
     ax4.set_ylabel('Frequency', fontsize=12, fontweight='bold')
     ax4.set_title('Error Distribution', fontsize=14, fontweight='bold')
+    ax4.grid(True, alpha=0.3, axis='y')
+    
     plt.tight_layout()
     plt.savefig('01_time_series_results.png', dpi=300, bbox_inches='tight')
     print("  Saved: 01_time_series_results.png")

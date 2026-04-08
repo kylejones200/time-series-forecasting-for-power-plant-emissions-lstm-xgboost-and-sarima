@@ -22,6 +22,13 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
 
+# Import Tufte plotting utilities
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from tda_utils import setup_tufte_plot, TufteColors
+
+
 
 def generate_architecture_diagram():
     """Generate load forecasting architecture diagram."""
@@ -132,7 +139,6 @@ def generate_training_pipeline():
     ax1.fill_between(dates, load - 2000, load + 2000, alpha=0.2, color=COLORS['black'])
     ax1.set_title('Historical Load Data (30 Days)', fontsize=12, weight='bold')
     ax1.set_ylabel('Load (MW)', fontsize=10)
-    ax1.grid(True, alpha=0.3, linestyle='--')
     ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
     ax1.legend(loc='upper right')
     
@@ -173,8 +179,6 @@ def generate_training_pipeline():
     ax3.set_xticklabels(models)
     ax3.tick_params(axis='y', labelcolor=COLORS['gray'])
     ax3_twin.tick_params(axis='y', labelcolor=COLORS['darkgray'])
-    ax3.grid(True, alpha=0.3, axis='y', linestyle='--')
-    
     # Add value labels
     for bar in bars1:
         height = bar.get_height()
@@ -198,7 +202,6 @@ def generate_training_pipeline():
     ax4.set_ylabel('Loss (MAE in MW)', fontsize=10)
     ax4.set_title('Model Training Convergence', fontsize=11, weight='bold')
     ax4.legend(loc='upper right')
-    ax4.grid(True, alpha=0.3, linestyle='--')
     ax4.set_ylim(500, 6000)
     
     # Add annotation for optimal point
@@ -235,7 +238,6 @@ def generate_performance_comparison():
     ax1.set_ylabel('Load (MW)', fontsize=10)
     ax1.set_title('24-Hour Forecast Comparison', fontsize=12, weight='bold')
     ax1.legend(loc='upper right', ncol=4)
-    ax1.grid(True, alpha=0.3, linestyle='--')
     ax1.set_xticks(hours[::3])
     
     # Scenario comparison
@@ -248,8 +250,6 @@ def generate_performance_comparison():
     ax2.set_ylabel('Peak Load (MW)', fontsize=10)
     ax2.set_title('Scenario Peak Load Comparison', fontsize=11, weight='bold')
     ax2.axhline(y=28500, color='black', linestyle='--', linewidth=1.5, alpha=0.5, label='Baseline')
-    ax2.grid(True, alpha=0.3, axis='y', linestyle='--')
-    
     for bar, load in zip(bars, peak_loads):
         height = bar.get_height()
         diff = ((load / 28500) - 1) * 100
@@ -269,7 +269,6 @@ def generate_performance_comparison():
     ax3.set_ylabel('Frequency', fontsize=10)
     ax3.set_title('Forecast Error Distribution', fontsize=11, weight='bold')
     ax3.legend()
-    ax3.grid(True, alpha=0.3, axis='y', linestyle='--')
     ax3.axvline(x=0, color='black', linestyle='--', linewidth=1.5)
     
     # Weekly forecast performance
@@ -287,7 +286,6 @@ def generate_performance_comparison():
     ax4.set_title('Forecast Accuracy by Day of Week', fontsize=11, weight='bold')
     ax4.set_xticks(days)
     ax4.set_xticklabels(day_labels)
-    ax4.grid(True, alpha=0.3, axis='y', linestyle='--')
     ax4.axhline(y=3.0, color=COLORS['black'], linestyle='--', linewidth=1.5, alpha=0.7)
     ax4.text(6.5, 3.1, 'Target', fontsize=8, color=COLORS['black'])
     

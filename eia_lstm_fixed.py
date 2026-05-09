@@ -9,6 +9,12 @@ from darts import TimeSeries
 from darts.dataprocessing.transformers import Scaler
 from darts.models import RNNModel
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 np.random.seed(42)
 plt.rcParams.update({'font.family': 'serif','axes.spines.top': False,'axes.spines.right': False,'axes.linewidth': 0.8})
 
@@ -24,6 +30,29 @@ class Config:
     input_chunk_length: int = 24
     output_chunk_length: int = 12
     epochs: int = 50
+
+def load_config(config_path=None) -> 'Config':
+    """Build Config from config.yaml, falling back to dataclass defaults."""
+    if config_path is None:
+        config_path = Path(__file__).parent / 'config.yaml'
+    if not config_path.exists():
+        return Config()
+    with open(config_path) as _f:
+        import yaml as _yaml
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get('data', {})
+    _m = raw.get('model', {})
+    _o = raw.get('output', {})
+    return Config(
+        csv_path=_d.get('input_file', '2001-2025 Net_generation_United_States_all_sectors_monthly.csv'),
+        freq=_d.get('freq', 'MS'),
+        horizon=_m.get('horizon', 12),
+        n_splits=_d.get('n_splits', 5),
+        input_chunk_length=_m.get('input_chunk_length', 24),
+        output_chunk_length=_o.get('output_chunk_length', 12),
+        epochs=_m.get('epochs', 50),
+    )
+
 
 
 def load_series(cfg: Config) -> TimeSeries:
@@ -68,17 +97,17 @@ def rolling_origin_lstm(ts: TimeSeries, cfg: Config):
         model.fit(y_tr)
         fc = model.predict(len(y_te))
         mae = mean_absolute_error(y_te.values().ravel(), fc.values().ravel())
-        print(f"Fold MAE: {mae:.3f}")
+        logger.info(f"Fold MAE: {mae:.3f}")
         maes.append(mae)
         last_true, last_pred = y_te, fc
     return float(np.mean(maes)), (last_true, last_pred)
 
 
 def main():
-    cfg = Config()
+    cfg = load_config()
     ts = load_series(cfg)
     mean_mae, _ = rolling_origin_lstm(ts, cfg)
-    print(f"LSTM mean MAE: {mean_mae}")
+    logger.info(f"LSTM mean MAE: {mean_mae}")
 
     # Tufte-style: fit on data through Dec 2024, forecast Jan–Aug 2025
     s = ts.to_series()

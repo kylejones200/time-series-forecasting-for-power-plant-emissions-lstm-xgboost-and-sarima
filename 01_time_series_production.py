@@ -8,6 +8,12 @@ import pandas as pd
 import numpy as np
 import warnings
 from pathlib import Path
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 warnings.filterwarnings('ignore')
 
 # ML libraries
@@ -35,7 +41,7 @@ RANDOM_STATE = 42
 
 def load_and_prepare_data():
     """Load and aggregate data to yearly time series"""
-    print("Loading data...")
+    logger.info("Loading data...")
     plants = pd.read_parquet(DATA_PATH)
     
     # Aggregate by year
@@ -48,7 +54,7 @@ def load_and_prepare_data():
     yearly['carbon_intensity'] = yearly['co2_tons'] / yearly['generation_mwh']
     yearly = yearly.sort_values('year').reset_index(drop=True)
     
-    print(f"Loaded {len(yearly)} years of data ({yearly['year'].min()}-{yearly['year'].max()})")
+    logger.info(f"Loaded {len(yearly)} years of data ({yearly['year'].min()}-{yearly['year'].max()})")
     return yearly
 
 def create_sequences(data, lookback=5):
@@ -75,7 +81,7 @@ def build_lstm_model(lookback, n_features=1):
 
 def train_lstm(train_data, test_data, lookback=5):
     """Train LSTM model"""
-    print("\n[1/4] Training LSTM...")
+    logger.info("\n[1/4] Training LSTM...")
     
     # Scale data
     scaler = StandardScaler()
@@ -103,7 +109,7 @@ def train_lstm(train_data, test_data, lookback=5):
     mae = mean_absolute_error(y_test_unscaled, y_pred_unscaled)
     rmse = np.sqrt(mean_squared_error(y_test_unscaled, y_pred_unscaled))
     
-    print(f"  MAE: {mae/1e9:.3f}B tons | RMSE: {rmse/1e9:.3f}B tons")
+    logger.info(f"  MAE: {mae/1e9:.3f}B tons | RMSE: {rmse/1e9:.3f}B tons")
     
     return {
         'model': model,
@@ -126,7 +132,7 @@ def create_lag_features(df, target_col, lags=[1, 2, 3, 5]):
 
 def train_xgboost(train_data, test_data):
     """Train XGBoost model"""
-    print("\n[2/4] Training XGBoost...")
+    logger.info("\n[2/4] Training XGBoost...")
     
     # Create features
     train_feat = create_lag_features(train_data.copy(), 'co2_tons')
@@ -156,7 +162,7 @@ def train_xgboost(train_data, test_data):
     mae = mean_absolute_error(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     
-    print(f"  MAE: {mae/1e9:.3f}B tons | RMSE: {rmse/1e9:.3f}B tons")
+    logger.info(f"  MAE: {mae/1e9:.3f}B tons | RMSE: {rmse/1e9:.3f}B tons")
     
     return {
         'model': model,
@@ -169,7 +175,7 @@ def train_xgboost(train_data, test_data):
 
 def train_sarima(train_data, test_data):
     """Train SARIMA model"""
-    print("\n[3/4] Training SARIMA...")
+    logger.info("\n[3/4] Training SARIMA...")
     
     train_ts = train_data.set_index('year')['co2_tons']
     test_ts = test_data.set_index('year')['co2_tons']
@@ -184,7 +190,7 @@ def train_sarima(train_data, test_data):
     mae = mean_absolute_error(test_ts, forecast)
     rmse = np.sqrt(mean_squared_error(test_ts, forecast))
     
-    print(f"  MAE: {mae/1e9:.3f}B tons | RMSE: {rmse/1e9:.3f}B tons")
+    logger.info(f"  MAE: {mae/1e9:.3f}B tons | RMSE: {rmse/1e9:.3f}B tons")
     
     return {
         'model': fitted,
@@ -196,7 +202,7 @@ def train_sarima(train_data, test_data):
 
 def create_ensemble(models, weights=None):
     """Create weighted ensemble of predictions"""
-    print("\n[4/4] Creating Ensemble...")
+    logger.info("\n[4/4] Creating Ensemble...")
     
     if weights is None:
         # Weight by inverse MAE
@@ -216,8 +222,8 @@ def create_ensemble(models, weights=None):
     mae = mean_absolute_error(actuals, ensemble_pred)
     rmse = np.sqrt(mean_squared_error(actuals, ensemble_pred))
     
-    print(f"  Weights: {[f'{w:.3f}' for w in weights]}")
-    print(f"  MAE: {mae/1e9:.3f}B tons | RMSE: {rmse/1e9:.3f}B tons")
+    logger.info(f"  Weights: {[f'{w:.3f}' for w in weights]}")
+    logger.info(f"  MAE: {mae/1e9:.3f}B tons | RMSE: {rmse/1e9:.3f}B tons")
     
     return {
         'predictions': ensemble_pred,
@@ -229,7 +235,7 @@ def create_ensemble(models, weights=None):
 
 def visualize_results(data, models, ensemble, test_start_year):
     """Create comparison visualization"""
-    print("\nGenerating visualizations...")
+    logger.info("\nGenerating visualizations...")
     
     fig, axes = plt.subplots(2, 2, figsize=(16, 10))
     
@@ -291,13 +297,13 @@ def visualize_results(data, models, ensemble, test_start_year):
     ax4.set_title('Error Distribution', fontsize=14, fontweight='bold')
     plt.tight_layout()
     plt.savefig('01_time_series_results.png', dpi=300, bbox_inches='tight')
-    print("  Saved: 01_time_series_results.png")
+    logger.info("  Saved: 01_time_series_results.png")
 
 def main():
     """Main execution"""
-    print("=" * 80)
-    print("TIME SERIES FORECASTING - PRODUCTION RUN")
-    print("=" * 80)
+    logger.info("=" * 80)
+    logger.info("TIME SERIES FORECASTING - PRODUCTION RUN")
+    logger.info("=" * 80)
     
     # Load data
     data = load_and_prepare_data()
@@ -306,7 +312,7 @@ def main():
     train = data[data['year'] <= TRAIN_END_YEAR]
     test = data[data['year'] >= TEST_START_YEAR]
     
-    print(f"\nTrain: {len(train)} years | Test: {len(test)} years")
+    logger.info(f"\nTrain: {len(train)} years | Test: {len(test)} years")
     
     # Train models
     lstm_results = train_lstm(train, test)
@@ -321,11 +327,11 @@ def main():
     visualize_results(data, models, ensemble_results, TEST_START_YEAR)
     
     # Summary
-    print("\n" + "=" * 80)
-    print("RESULTS SUMMARY")
-    print("=" * 80)
-    print(f"{'Model':<15} {'MAE (B tons)':<15} {'RMSE (B tons)':<15} {'Improvement vs Best Single'}")
-    print("-" * 80)
+    logger.info("\n" + "=" * 80)
+    logger.info("RESULTS SUMMARY")
+    logger.info("=" * 80)
+    logger.info(f"{'Model':<15} {'MAE (B tons)':<15} {'RMSE (B tons)':<15} {'Improvement vs Best Single'}")
+    logger.info("-" * 80)
     
     best_single_mae = min(m['mae'] for m in models)
     
@@ -333,10 +339,10 @@ def main():
                         ('SARIMA', sarima_results), ('Ensemble', ensemble_results)]:
         improvement = (best_single_mae - model['mae']) / best_single_mae * 100
         rmse = model['rmse'] if 'rmse' in model else np.sqrt(mean_squared_error(model['actuals'], model['predictions']))
-        print(f"{name:<15} {model['mae']/1e9:<15.3f} {rmse/1e9:<15.3f} {improvement:+.1f}%")
+        logger.info(f"{name:<15} {model['mae']/1e9:<15.3f} {rmse/1e9:<15.3f} {improvement:+.1f}%")
     
-    print("=" * 80)
-    print("✓ Complete!")
+    logger.info("=" * 80)
+    logger.info("✓ Complete!")
     
     return {
         'lstm': lstm_results,

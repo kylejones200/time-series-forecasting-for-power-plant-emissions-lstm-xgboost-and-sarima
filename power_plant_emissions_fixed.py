@@ -12,6 +12,12 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 import statsmodels.api as sm
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 np.random.seed(42)
 
 plt.rcParams.update({'font.family': 'serif','axes.spines.top': False,'axes.spines.right': False,'axes.linewidth': 0.8})
@@ -27,6 +33,28 @@ class Config:
     feature_cols: Tuple[str, ...] = ()
     freq: str = "D"
     n_splits: int = 5
+
+def load_config(config_path=None) -> 'Config':
+    """Build Config from config.yaml, falling back to dataclass defaults."""
+    if config_path is None:
+        config_path = Path(__file__).parent / 'config.yaml'
+    if not config_path.exists():
+        return Config()
+    with open(config_path) as _f:
+        import yaml as _yaml
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get('data', {})
+    _m = raw.get('model', {})
+    _o = raw.get('output', {})
+    return Config(
+        csv_path=_d.get('input_file', 'emissions.csv'),
+        time_col=_m.get('time_col', 'date'),
+        target_col=_m.get('target_col', 'emissions'),
+        feature_cols=_m.get('feature_cols', ()),
+        freq=_d.get('freq', 'D'),
+        n_splits=_d.get('n_splits', 5),
+    )
+
 
 
 def load_data(cfg: Config) -> pd.DataFrame:
@@ -79,7 +107,7 @@ def fit_eval_rf(df: pd.DataFrame, cfg: Config):
         yhat = model.predict(X[te])
         metrics.append(eval_regression(y[te], yhat))
         last = (model, tr, te)
-    print("RF mean metrics:", {k: float(np.mean([m[k] for m in metrics])) for k in metrics[0]})
+    logger.info("RF mean metrics:", {k: float(np.mean([m[k] for m in metrics])) for k in metrics[0]})
 
     if last is not None:
         model, tr, te = last
@@ -102,7 +130,7 @@ def fit_eval_sarimax(df: pd.DataFrame, cfg: Config, order=(1,1,1), seasonal_orde
     res = model.fit(disp=False)
     yhat = res.forecast(steps=len(y_te))
     m = eval_regression(y_te.values, yhat.values)
-    print("SARIMAX test metrics:", m)
+    logger.info("SARIMAX test metrics:", m)
 
     plt.figure(figsize=(9, 4))
     plt.plot(y_tr.index, y_tr.values, label="Train")
@@ -114,7 +142,7 @@ def fit_eval_sarimax(df: pd.DataFrame, cfg: Config, order=(1,1,1), seasonal_orde
 
 
 def main():
-    cfg = Config()
+    cfg = load_config()
     df = load_data(cfg)
     fit_eval_rf(df, cfg)
     fit_eval_sarimax(df, cfg)

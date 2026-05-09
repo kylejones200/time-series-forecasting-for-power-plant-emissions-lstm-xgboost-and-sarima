@@ -7,6 +7,12 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_error
 import statsmodels.api as sm
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 np.random.seed(42)
 
 plt.rcParams.update(
@@ -33,6 +39,26 @@ class Config:
     freq: str = "MS"
     horizon: int = 12
     n_splits: int = 5
+
+def load_config(config_path=None) -> 'Config':
+    """Build Config from config.yaml, falling back to dataclass defaults."""
+    if config_path is None:
+        config_path = Path(__file__).parent / 'config.yaml'
+    if not config_path.exists():
+        return Config()
+    with open(config_path) as _f:
+        import yaml as _yaml
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get('data', {})
+    _m = raw.get('model', {})
+    _o = raw.get('output', {})
+    return Config(
+        csv_path=_d.get('input_file', '/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv'),
+        freq=_d.get('freq', 'MS'),
+        horizon=_m.get('horizon', 12),
+        n_splits=_d.get('n_splits', 5),
+    )
+
 
 
 def load_eia_series(cfg: Config) -> pd.Series:
@@ -93,13 +119,13 @@ def rolling_origin_eval(y: pd.Series, horizon: int, n_splits: int):
 
 
 def main():
-    cfg = Config()
+    cfg = load_config()
     y = load_eia_series(cfg)
     metrics, last = rolling_origin_eval(y, horizon=cfg.horizon, n_splits=cfg.n_splits)
     ets_mean = np.mean([m["ETS_MAE"] for m in metrics])
     arima_mean = np.mean([m["ARIMA_MAE"] for m in metrics])
-    print(f"ETS mean MAE: {ets_mean:.4f}")
-    print(f"SARIMAX mean MAE: {arima_mean:.4f}")
+    logger.info(f"ETS mean MAE: {ets_mean:.4f}")
+    logger.info(f"SARIMAX mean MAE: {arima_mean:.4f}")
     if last:
         tr_idx, tr_vals, te_idx, te_vals, ets_vals, arima_vals = last
         plt.figure(figsize=(9, 4))

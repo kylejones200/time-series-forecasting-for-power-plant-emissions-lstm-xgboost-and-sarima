@@ -2,6 +2,12 @@
 import sys
 import os
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 # Add parent directory to path to import plot_style
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
@@ -96,7 +102,7 @@ def create_01_main():
     ax2.set_xticks(range(0, 24, 3))
     
     save_fig('01_load_forecasting_main.png')
-    print("✓ Created: 01_load_forecasting_main.png")
+    logger.info("✓ Created: 01_load_forecasting_main.png")
 
 def create_01_accuracy():
     """Blog 01: Forecast accuracy metrics."""
@@ -137,7 +143,7 @@ def create_01_accuracy():
     ax2.set_ylabel('Frequency', fontsize=10)
     
     save_fig('01_load_forecasting_accuracy.png')
-    print("✓ Created: 01_load_forecasting_accuracy.png")
+    logger.info("✓ Created: 01_load_forecasting_accuracy.png")
 
 # ==================== BLOG 02: LMP Analysis ====================
 
@@ -190,7 +196,7 @@ def create_02_main():
     ax2.legend(loc='upper left', frameon=False, fontsize=9)
     
     save_fig('02_lmp_analysis_main.png')
-    print("✓ Created: 02_lmp_analysis_main.png")
+    logger.info("✓ Created: 02_lmp_analysis_main.png")
 
 # Note: Blog 02 originally has only one image referenced, but the file 02_lmp_analysis_accuracy.png exists
 # Skipping accuracy plot creation since it's not referenced in the markdown
@@ -246,7 +252,7 @@ def create_03_main():
     ax2.set_xticks(range(0, 24, 3))
     
     save_fig('03_generation_dispatch_main.png')
-    print("✓ Created: 03_generation_dispatch_main.png")
+    logger.info("✓ Created: 03_generation_dispatch_main.png")
 
 # Note: Skipping results plot as it's not crucial and simplifies the script
 
@@ -295,7 +301,7 @@ def create_04_main():
     ax2.legend(loc='upper right', frameon=False, fontsize=9)
     
     save_fig('04_power_options_main.png')
-    print("✓ Created: 04_power_options_main.png")
+    logger.info("✓ Created: 04_power_options_main.png")
 
 # Note: Skipping performance plot
 
@@ -358,21 +364,21 @@ def create_05_main():
     ax2.set_xlim(0, 60)
     
     save_fig('05_risk_management_main.png')
-    print("✓ Created: 05_risk_management_main.png")
+    logger.info("✓ Created: 05_risk_management_main.png")
 
 # Note: Skipping excellence plot
 
 def main():
     """Generate all visualizations for blogs 01-05."""
     set_tufte_defaults()
-    print("=" * 60)
-    print("POWER TRADING BLOGS (01-05) - VISUALIZATION GENERATION")
-    print("=" * 60)
-    print()
+    logger.info("=" * 60)
+    logger.info("POWER TRADING BLOGS (01-05) - VISUALIZATION GENERATION")
+    logger.info("=" * 60)
+    logger.info()
     
     plt.rcParams['font.family'] = 'serif'
     
-    print("Creating visualizations...")
+    logger.info("Creating visualizations...")
     create_01_main()
     create_01_accuracy()
     create_02_main()
@@ -380,10 +386,10 @@ def main():
     create_04_main()
     create_05_main()
     
-    print()
-    print("=" * 60)
-    print("All visualizations created successfully!")
-    print("=" * 60)
+    logger.info()
+    logger.info("=" * 60)
+    logger.info("All visualizations created successfully!")
+    logger.info("=" * 60)
 
 if __name__ == "__main__":
     main()

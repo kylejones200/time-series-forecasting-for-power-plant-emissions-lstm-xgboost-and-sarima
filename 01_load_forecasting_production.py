@@ -2,6 +2,12 @@
 """
 Load Forecasting for Power Trading - Production Implementation
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 Clean, executable implementation of load forecasting models for power trading.
 Includes pattern-based forecasting, weather adjustments, and machine learning.
 """
@@ -27,14 +33,7 @@ def generate_load_curve(base_load_mw=9300, date=None):
     
     hourly_data = []
     for hour in range(24):
-        if 6 <= hour <= 9:
-            load_factor = 0.85 + np.random.uniform(-0.03, 0.03)
-        elif 17 <= hour <= 21:
-            load_factor = 0.95 + np.random.uniform(-0.03, 0.03)
-        elif 22 <= hour or hour <= 5:
-            load_factor = 0.60 + np.random.uniform(-0.03, 0.03)
-        else:
-            load_factor = 0.75 + np.random.uniform(-0.03, 0.03)
+        load_factor = np.select([6 <= hour <= 9, 17 <= hour <= 21, 22 <= hour or hour <= 5], [0.85 + np.random.uniform(-0.03, 0.03), 0.95 + np.random.uniform(-0.03, 0.03), 0.6 + np.random.uniform(-0.03, 0.03)], default=0.75 + np.random.uniform(-0.03, 0.03))
         
         peak_load = base_load_mw * load_factor
         average_load = peak_load * 0.70
@@ -66,10 +65,7 @@ def apply_weather_adjustment(load_data, temperature_f, humidity_pct):
     else:
         cooling_multiplier = 1.0
     
-    if humidity_pct > 60 and temperature_f > 75:
-        humidity_multiplier = 1 + ((humidity_pct - 60) * 0.005)
-    else:
-        humidity_multiplier = 1.0
+    humidity_multiplier = np.where(humidity_pct > 60 and temperature_f > 75, 1 + (humidity_pct - 60) * 0.005, 1.0)
     
     weather_factor = cooling_multiplier * humidity_multiplier
     
@@ -190,61 +186,61 @@ def export_to_csv(load_data, filename):
 
 def main():
     """Execute load forecasting analysis."""
-    print("=" * 70)
-    print("LOAD FORECASTING FOR POWER TRADING - PRODUCTION RUN")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("LOAD FORECASTING FOR POWER TRADING - PRODUCTION RUN")
+    logger.info("=" * 70)
     
     start_time = time.time()
     
-    print("\n1. Generating Base Load Forecast...")
+    logger.info("\n1. Generating Base Load Forecast...")
     base_forecast = generate_load_curve()
     base_metrics = calculate_forecast_metrics(base_forecast)
-    print(f"   Peak Load: {base_metrics['peak_load_mw']:.0f} MW")
-    print(f"   Average Load: {base_metrics['average_load_mw']:.0f} MW")
-    print(f"   System Load Factor: {base_metrics['system_load_factor']:.2%}")
-    print(f"   Peak Price: ${base_metrics['peak_price_mwh']:.2f}/MWh")
+    logger.info(f"   Peak Load: {base_metrics['peak_load_mw']:.0f} MW")
+    logger.info(f"   Average Load: {base_metrics['average_load_mw']:.0f} MW")
+    logger.info(f"   System Load Factor: {base_metrics['system_load_factor']:.2%}")
+    logger.info(f"   Peak Price: ${base_metrics['peak_price_mwh']:.2f}/MWh")
     
-    print("\n2. Applying Weather Adjustments...")
+    logger.info("\n2. Applying Weather Adjustments...")
     hot_weather_forecast = apply_weather_adjustment(base_forecast, temperature_f=98, humidity_pct=75)
     hot_metrics = calculate_forecast_metrics(hot_weather_forecast)
-    print(f"   Hot Day Peak: {hot_metrics['peak_load_mw']:.0f} MW")
-    print(f"   Load Increase: {(hot_metrics['peak_load_mw'] / base_metrics['peak_load_mw'] - 1) * 100:.1f}%")
-    print(f"   Hot Day Peak Price: ${hot_metrics['peak_price_mwh']:.2f}/MWh")
-    print(f"   Price Increase: {(hot_metrics['peak_price_mwh'] / base_metrics['peak_price_mwh'] - 1) * 100:.1f}%")
+    logger.info(f"   Hot Day Peak: {hot_metrics['peak_load_mw']:.0f} MW")
+    logger.info(f"   Load Increase: {(hot_metrics['peak_load_mw'] / base_metrics['peak_load_mw'] - 1) * 100:.1f}%")
+    logger.info(f"   Hot Day Peak Price: ${hot_metrics['peak_price_mwh']:.2f}/MWh")
+    logger.info(f"   Price Increase: {(hot_metrics['peak_price_mwh'] / base_metrics['peak_price_mwh'] - 1) * 100:.1f}%")
     
-    print("\n3. Week-Ahead Forecasting...")
+    logger.info("\n3. Week-Ahead Forecasting...")
     week_forecast = forecast_week_ahead()
     week_metrics = calculate_forecast_metrics(week_forecast)
-    print(f"   Forecast Period: 7 days ({len(week_forecast)} hours)")
-    print(f"   Week Peak: {week_metrics['peak_load_mw']:.0f} MW")
-    print(f"   Week Average: {week_metrics['average_load_mw']:.0f} MW")
+    logger.info(f"   Forecast Period: 7 days ({len(week_forecast)} hours)")
+    logger.info(f"   Week Peak: {week_metrics['peak_load_mw']:.0f} MW")
+    logger.info(f"   Week Average: {week_metrics['average_load_mw']:.0f} MW")
     
-    print("\n4. Building Machine Learning Model...")
+    logger.info("\n4. Building Machine Learning Model...")
     historical_data = [generate_load_curve() for _ in range(15)]
     ml_results = build_ml_forecast_model(historical_data)
-    print(f"   Training R²: {ml_results['train_r2']:.3f}")
-    print(f"   Testing R²: {ml_results['test_r2']:.3f}")
-    print(f"   Mean Absolute Error: {ml_results['mae_mw']:.2f} MW")
-    print(f"   Mean Absolute Percentage Error: {ml_results['mape_pct']:.2f}%")
+    logger.info(f"   Training R²: {ml_results['train_r2']:.3f}")
+    logger.info(f"   Testing R²: {ml_results['test_r2']:.3f}")
+    logger.error(f"   Mean Absolute Error: {ml_results['mae_mw']:.2f} MW")
+    logger.error(f"   Mean Absolute Percentage Error: {ml_results['mape_pct']:.2f}%")
     
-    print("\n5. Exporting Results...")
+    logger.info("\n5. Exporting Results...")
     export_to_csv(base_forecast, 'load_forecast_base.csv')
     export_to_csv(hot_weather_forecast, 'load_forecast_hot_weather.csv')
     export_to_csv(week_forecast, 'load_forecast_week.csv')
-    print("   Exported: load_forecast_base.csv")
-    print("   Exported: load_forecast_hot_weather.csv")
-    print("   Exported: load_forecast_week.csv")
+    logger.info("   Exported: load_forecast_base.csv")
+    logger.info("   Exported: load_forecast_hot_weather.csv")
+    logger.info("   Exported: load_forecast_week.csv")
     
     execution_time = time.time() - start_time
     
-    print("\n" + "=" * 70)
-    print("PERFORMANCE METRICS")
-    print("=" * 70)
-    print(f"Total Execution Time: {execution_time:.3f} seconds")
-    print(f"Forecast Accuracy (MAPE): {ml_results['mape_pct']:.2f}%")
-    print(f"Model Training Time: < 1 second")
-    print(f"Forecasts Generated: {len(base_forecast) + len(hot_weather_forecast) + len(week_forecast)}")
-    print("=" * 70)
+    logger.info("\n" + "=" * 70)
+    logger.info("PERFORMANCE METRICS")
+    logger.info("=" * 70)
+    logger.info(f"Total Execution Time: {execution_time:.3f} seconds")
+    logger.info(f"Forecast Accuracy (MAPE): {ml_results['mape_pct']:.2f}%")
+    logger.info(f"Model Training Time: < 1 second")
+    logger.info(f"Forecasts Generated: {len(base_forecast) + len(hot_weather_forecast) + len(week_forecast)}")
+    logger.info("=" * 70)
 
 if __name__ == "__main__":
     main()

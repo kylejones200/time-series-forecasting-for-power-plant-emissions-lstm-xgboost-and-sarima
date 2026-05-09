@@ -1,6 +1,12 @@
 import sys
 import os
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 # Add parent directory to path to import plot_style
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
@@ -119,7 +125,7 @@ def generate_architecture_diagram():
     
     plt.tight_layout()
     plt.savefig('01_load_forecasting_architecture.png', bbox_inches='tight', dpi=300)
-    print("✓ Generated: 01_load_forecasting_architecture.png")
+    logger.info("✓ Generated: 01_load_forecasting_architecture.png")
     plt.close()
 
 
@@ -212,7 +218,7 @@ def generate_training_pipeline():
                 fontsize=9, weight='bold')
     
     plt.savefig('01_load_forecasting_training.png', bbox_inches='tight', dpi=300)
-    print("✓ Generated: 01_load_forecasting_training.png")
+    logger.info("✓ Generated: 01_load_forecasting_training.png")
     plt.close()
 
 
@@ -322,19 +328,19 @@ def generate_performance_comparison():
     cbar.set_label('Correlation', fontsize=9)
     
     plt.savefig('01_load_forecasting_performance.png', bbox_inches='tight', dpi=300)
-    print("✓ Generated: 01_load_forecasting_performance.png")
+    logger.info("✓ Generated: 01_load_forecasting_performance.png")
     plt.close()
 
 
 if __name__ == "__main__":
-    print("Generating visualizations for Load Forecasting Machine Learning Blog...\n")
+    logger.info("Generating visualizations for Load Forecasting Machine Learning Blog...\n")
     
     generate_architecture_diagram()
     generate_training_pipeline()
     generate_performance_comparison()
     
-    print("\n✓ All visualizations generated successfully!")
-    print("  - 01_load_forecasting_architecture.png")
-    print("  - 01_load_forecasting_training.png")
-    print("  - 01_load_forecasting_performance.png")
+    logger.info("\n✓ All visualizations generated successfully!")
+    logger.info("  - 01_load_forecasting_architecture.png")
+    logger.info("  - 01_load_forecasting_training.png")
+    logger.info("  - 01_load_forecasting_performance.png")
 

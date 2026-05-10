@@ -428,70 +428,71 @@ def create_ensemble(models, weights=None):
         'weights': weights
     }
 
-def visualize_results(data, models, ensemble, test_start_year):
+def visualize_results(data, models, ensemble, test_start_year, plot: bool = False):
     """Create comparison visualization"""
     logger.info("\nGenerating visualizations...")
     
-    fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+    if plot:
+        fig, axes = plt.subplots(2, 2, figsize=(16, 10))
     
     # Get test years
-    test_data = data[data['year'] >= test_start_year]
-    test_years = test_data['year'].values
+        test_data = data[data['year'] >= test_start_year]
+        test_years = test_data['year'].values
     
     # Plot 1: All models comparison
-    ax1 = axes[0, 0]
-    ax1.plot(data['year'], data['co2_tons']/1e9, 'o-', 
-            label='Actual', linewidth=2, markersize=6)
+        ax1 = axes[0, 0]
+        ax1.plot(data['year'], data['co2_tons']/1e9, 'o-', 
+                label='Actual', linewidth=2, markersize=6)
     
     # Align years for each model
-    for name, model in [('LSTM', models[0]), ('XGBoost', models[1]), ('SARIMA', models[2])]:
-        pred_years = test_years[-len(model['predictions']):]
-        ax1.plot(pred_years, model['predictions']/1e9, 
-                's--', label=name, linewidth=2, markersize=5, alpha=0.7)
+        for name, model in [('LSTM', models[0]), ('XGBoost', models[1]), ('SARIMA', models[2])]:
+            pred_years = test_years[-len(model['predictions']):]
+            ax1.plot(pred_years, model['predictions']/1e9, 
+                    's--', label=name, linewidth=2, markersize=5, alpha=0.7)
     
     # Ensemble
-    ens_years = test_years[-len(ensemble['predictions']):]
-    ax1.plot(ens_years, ensemble['predictions']/1e9, 
-            'D-', label='Ensemble', linewidth=3, markersize=6, color='red')
+        ens_years = test_years[-len(ensemble['predictions']):]
+        ax1.plot(ens_years, ensemble['predictions']/1e9, 
+                'D-', label='Ensemble', linewidth=3, markersize=6, color='red')
     
-    ax1.axvline(test_start_year-0.5, color='black', linestyle='--', alpha=0.5)
-    ax1.set_xlabel('Year', fontsize=12, fontweight='bold')
-    ax1.set_ylabel('CO₂ Emissions (Billion Tons)', fontsize=12, fontweight='bold')
-    ax1.set_title('Model Comparison', fontsize=14, fontweight='bold')
-    ax1.legend(fontsize=10)
+        ax1.axvline(test_start_year-0.5, color='black', linestyle='--', alpha=0.5)
+        ax1.set_xlabel('Year', fontsize=12, fontweight='bold')
+        ax1.set_ylabel('CO₂ Emissions (Billion Tons)', fontsize=12, fontweight='bold')
+        ax1.set_title('Model Comparison', fontsize=14, fontweight='bold')
+        ax1.legend(fontsize=10)
     # Plot 2: Model performance
-    ax2 = axes[0, 1]
-    model_names = ['LSTM', 'XGBoost', 'SARIMA', 'Ensemble']
-    maes = [m['mae']/1e9 for m in models] + [ensemble['mae']/1e9]
+        ax2 = axes[0, 1]
+        model_names = ['LSTM', 'XGBoost', 'SARIMA', 'Ensemble']
+        maes = [m['mae']/1e9 for m in models] + [ensemble['mae']/1e9]
     
-    bars = ax2.bar(model_names, maes, color=['#3498db', '#2ecc71', '#f39c12', '#e74c3c'], 
-                   alpha=0.8, edgecolor='black', linewidth=1.5)
-    ax2.set_ylabel('MAE (Billion Tons)', fontsize=12, fontweight='bold')
-    ax2.set_title('Model Performance', fontsize=14, fontweight='bold')
+        bars = ax2.bar(model_names, maes, color=['#3498db', '#2ecc71', '#f39c12', '#e74c3c'], 
+                       alpha=0.8, edgecolor='black', linewidth=1.5)
+        ax2.set_ylabel('MAE (Billion Tons)', fontsize=12, fontweight='bold')
+        ax2.set_title('Model Performance', fontsize=14, fontweight='bold')
     # Add values on bars
-    for bar, mae in zip(bars, maes):
-        height = bar.get_height()
-        ax2.text(bar.get_x() + bar.get_width()/2., height,
-                f'{mae:.3f}B',
-                ha='center', va='bottom', fontsize=11, fontweight='bold')
+        for bar, mae in zip(bars, maes):
+            height = bar.get_height()
+            ax2.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{mae:.3f}B',
+                    ha='center', va='bottom', fontsize=11, fontweight='bold')
     
     # Plot 3: Residuals
-    ax3 = axes[1, 0]
-    residuals = ensemble['actuals'] - ensemble['predictions']
-    ax3.plot(ens_years, residuals/1e9, 'o-', linewidth=2, markersize=8)
-    ax3.axhline(0, color='red', linestyle='--', linewidth=2)
-    ax3.set_xlabel('Year', fontsize=12, fontweight='bold')
-    ax3.set_ylabel('Residual (Billion Tons)', fontsize=12, fontweight='bold')
-    ax3.set_title('Ensemble Residuals', fontsize=14, fontweight='bold')
+        ax3 = axes[1, 0]
+        residuals = ensemble['actuals'] - ensemble['predictions']
+        ax3.plot(ens_years, residuals/1e9, 'o-', linewidth=2, markersize=8)
+        ax3.axhline(0, color='red', linestyle='--', linewidth=2)
+        ax3.set_xlabel('Year', fontsize=12, fontweight='bold')
+        ax3.set_ylabel('Residual (Billion Tons)', fontsize=12, fontweight='bold')
+        ax3.set_title('Ensemble Residuals', fontsize=14, fontweight='bold')
     # Plot 4: Error distribution
-    ax4 = axes[1, 1]
-    ax4.hist(residuals/1e9, bins=10, color='#9b59b6', alpha=0.7, edgecolor='black')
-    ax4.axvline(0, color='red', linestyle='--', linewidth=2)
-    ax4.set_xlabel('Residual (Billion Tons)', fontsize=12, fontweight='bold')
-    ax4.set_ylabel('Frequency', fontsize=12, fontweight='bold')
-    ax4.set_title('Error Distribution', fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    plt.savefig('01_time_series_results.png', dpi=300, bbox_inches='tight')
+        ax4 = axes[1, 1]
+        ax4.hist(residuals/1e9, bins=10, color='#9b59b6', alpha=0.7, edgecolor='black')
+        ax4.axvline(0, color='red', linestyle='--', linewidth=2)
+        ax4.set_xlabel('Residual (Billion Tons)', fontsize=12, fontweight='bold')
+        ax4.set_ylabel('Frequency', fontsize=12, fontweight='bold')
+        ax4.set_title('Error Distribution', fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        plt.savefig('01_time_series_results.png', dpi=300, bbox_inches='tight')
     logger.info("  Saved: 01_time_series_results.png")
 
 def main():

@@ -103,7 +103,7 @@ def rolling_origin_lstm(ts: TimeSeries, cfg: Config):
     return float(np.mean(maes)), (last_true, last_pred)
 
 
-def main():
+def main(plot: bool = False):
     cfg = load_config()
     ts = load_series(cfg)
     mean_mae, _ = rolling_origin_lstm(ts, cfg)
@@ -152,29 +152,30 @@ def main():
     lower = TimeSeries.from_times_and_values(f_idx, fc.values().ravel() - 1.96 * sigma, freq=cfg.freq)
 
     # Plot
-    fig, ax = plt.subplots(figsize=(10,5))
-    ax.plot(y_hist.index, y_hist.values, color='#888888', lw=1.5)
-    ax.axvline(jan_2025, color='#666666', linestyle='--', lw=1)
-    ax.plot(y_act.index, y_act.values, color='#444444', lw=1.8)
-    ax.fill_between(f_idx, lower.values().ravel(), upper.values().ravel(), color='#000000', alpha=0.06, linewidth=0)
-    ax.plot(f_idx, fc.values().ravel(), color='#000000', lw=2.0)
+    if plot:
+        fig, ax = plt.subplots(figsize=(10,5))
+        ax.plot(y_hist.index, y_hist.values, color='#888888', lw=1.5)
+        ax.axvline(jan_2025, color='#666666', linestyle='--', lw=1)
+        ax.plot(y_act.index, y_act.values, color='#444444', lw=1.8)
+        ax.fill_between(f_idx, lower.values().ravel(), upper.values().ravel(), color='#000000', alpha=0.06, linewidth=0)
+        ax.plot(f_idx, fc.values().ravel(), color='#000000', lw=2.0)
 
-    from matplotlib.ticker import MaxNLocator, StrMethodFormatter
-    ax.yaxis.set_major_locator(MaxNLocator(4))
-    ax.yaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+        from matplotlib.ticker import MaxNLocator, StrMethodFormatter
+        ax.yaxis.set_major_locator(MaxNLocator(4))
+        ax.yaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
 
-    if len(y_hist):
-        ax.annotate('History (2024)', xy=(y_hist.index[-1], y_hist.values[-1]), xytext=(6,0), textcoords='offset points', fontsize=9, va='center', ha='left', color='#666666')
-    if len(y_act):
-        ax.annotate('Actual (Jan–Aug 2025)', xy=(y_act.index[-1], y_act.values[-1]), xytext=(6,0), textcoords='offset points', fontsize=9, va='center', ha='left', color='#444444')
-    ax.annotate('Forecast', xy=(f_idx[-1], fc.values().ravel()[-1]), xytext=(6,0), textcoords='offset points', fontsize=9, va='center', ha='left', color='#000000')
+        if len(y_hist):
+            ax.annotate('History (2024)', xy=(y_hist.index[-1], y_hist.values[-1]), xytext=(6,0), textcoords='offset points', fontsize=9, va='center', ha='left', color='#666666')
+        if len(y_act):
+            ax.annotate('Actual (Jan–Aug 2025)', xy=(y_act.index[-1], y_act.values[-1]), xytext=(6,0), textcoords='offset points', fontsize=9, va='center', ha='left', color='#444444')
+        ax.annotate('Forecast', xy=(f_idx[-1], fc.values().ravel()[-1]), xytext=(6,0), textcoords='offset points', fontsize=9, va='center', ha='left', color='#000000')
 
-    ax.set_title('EIA Net Generation — LSTM forecast Jan–Aug 2025')
-    ax.set_xlabel('')
-    ax.grid(False)
-    save_fig('eia_lstm_last_fold.png')
+        ax.set_title('EIA Net Generation — LSTM forecast Jan–Aug 2025')
+        ax.set_xlabel('')
+        ax.grid(False)
+        save_fig('eia_lstm_last_fold.png')
 
 if __name__ == '__main__':
     main()

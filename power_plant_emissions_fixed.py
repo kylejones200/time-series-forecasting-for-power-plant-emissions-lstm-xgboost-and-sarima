@@ -92,7 +92,7 @@ def eval_regression(y_true, y_pred):
     return {"mae": float(mae), "rmse": float(rmse)}
 
 
-def fit_eval_rf(df: pd.DataFrame, cfg: Config):
+def fit_eval_rf(df: pd.DataFrame, cfg: Config, plot: bool = False):
     series = df[[cfg.target_col]].asfreq(cfg.freq)
     feat_df = make_lag_features(series, cfg.target_col).dropna()
     X = feat_df.drop(columns=[cfg.target_col]).values
@@ -112,13 +112,14 @@ def fit_eval_rf(df: pd.DataFrame, cfg: Config):
     if last is not None:
         model, tr, te = last
         idx = feat_df.index
-        plt.figure(figsize=(9, 4))
-        plt.plot(idx[tr], y[tr], label="Train")
-        plt.plot(idx[te], y[te], label="Test")
-        plt.plot(idx[te], model.predict(X[te]), label="RF Pred", linestyle="--")
-        plt.legend(); plt.title("RandomForest (lag features) – Chrono CV last fold")
-        plt.xlabel("Time"); plt.ylabel(cfg.target_col)
-        save_fig("power_rf_last_fold.png")
+    if plot:
+            plt.figure(figsize=(9, 4))
+            plt.plot(idx[tr], y[tr], label="Train")
+            plt.plot(idx[te], y[te], label="Test")
+            plt.plot(idx[te], model.predict(X[te]), label="RF Pred", linestyle="--")
+            plt.legend(); plt.title("RandomForest (lag features) – Chrono CV last fold")
+            plt.xlabel("Time"); plt.ylabel(cfg.target_col)
+            save_fig("power_rf_last_fold.png")
 
 
 def fit_eval_sarimax(df: pd.DataFrame, cfg: Config, order=(1,1,1), seasonal_order=(0,0,0,0)):
@@ -132,13 +133,14 @@ def fit_eval_sarimax(df: pd.DataFrame, cfg: Config, order=(1,1,1), seasonal_orde
     m = eval_regression(y_te.values, yhat.values)
     logger.info("SARIMAX test metrics:", m)
 
-    plt.figure(figsize=(9, 4))
-    plt.plot(y_tr.index, y_tr.values, label="Train")
-    plt.plot(y_te.index, y_te.values, label="Test")
-    plt.plot(y_te.index, yhat.values, label="SARIMAX Forecast", linestyle="--")
-    plt.legend(); plt.title("SARIMAX – Chronological holdout")
-    plt.xlabel("Time"); plt.ylabel(cfg.target_col)
-    save_fig("power_sarimax_holdout.png")
+    if plot:
+        plt.figure(figsize=(9, 4))
+        plt.plot(y_tr.index, y_tr.values, label="Train")
+        plt.plot(y_te.index, y_te.values, label="Test")
+        plt.plot(y_te.index, yhat.values, label="SARIMAX Forecast", linestyle="--")
+        plt.legend(); plt.title("SARIMAX – Chronological holdout")
+        plt.xlabel("Time"); plt.ylabel(cfg.target_col)
+        save_fig("power_sarimax_holdout.png")
 
 
 def main():

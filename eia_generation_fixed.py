@@ -118,7 +118,7 @@ def rolling_origin_eval(y: pd.Series, horizon: int, n_splits: int):
     return metrics, last_plot
 
 
-def main():
+def main(plot: bool = False):
     cfg = load_config()
     y = load_eia_series(cfg)
     metrics, last = rolling_origin_eval(y, horizon=cfg.horizon, n_splits=cfg.n_splits)
@@ -128,16 +128,17 @@ def main():
     logger.info(f"SARIMAX mean MAE: {arima_mean:.4f}")
     if last:
         tr_idx, tr_vals, te_idx, te_vals, ets_vals, arima_vals = last
-        plt.figure(figsize=(9, 4))
-        plt.plot(tr_idx, tr_vals, label="Train")
-        plt.plot(te_idx, te_vals, label="Test")
-        plt.plot(te_idx, ets_vals, label="ETS Forecast", linestyle="--")
-        plt.plot(te_idx, arima_vals, label="SARIMAX Forecast", linestyle=":")
-        plt.legend()
-        plt.title("EIA Generation – Rolling-Origin (last fold)")
-        plt.xlabel("Time")
-        plt.ylabel("Value")
-        save_fig("eia_generation_last_fold.png")
+    if plot:
+            plt.figure(figsize=(9, 4))
+            plt.plot(tr_idx, tr_vals, label="Train")
+            plt.plot(te_idx, te_vals, label="Test")
+            plt.plot(te_idx, ets_vals, label="ETS Forecast", linestyle="--")
+            plt.plot(te_idx, arima_vals, label="SARIMAX Forecast", linestyle=":")
+            plt.legend()
+            plt.title("EIA Generation – Rolling-Origin (last fold)")
+            plt.xlabel("Time")
+            plt.ylabel("Value")
+            save_fig("eia_generation_last_fold.png")
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 *Comparing three state-of-the-art forecasting methods on 27 years of EPA emissions data to predict the future of energy generation*
 
-**Kyle Jones**  
+Kyle Jones  
 12 min read · Oct 6, 2025
 
 ---
@@ -15,13 +15,13 @@ But which forecasting method works best? Should you use deep learning LSTMs, gra
 
 The power sector accounts for approximately 25% of U.S. greenhouse gas emissions. Accurate forecasting helps:
 
-**Policy Makers:** Set realistic emission reduction targets and evaluate policy effectiveness. Knowing whether emissions will naturally decline or require intervention drives billion-dollar decisions.
+Policy Makers: Set realistic emission reduction targets and evaluate policy effectiveness. Knowing whether emissions will naturally decline or require intervention drives billion-dollar decisions.
 
-**Grid Operators:** Plan capacity additions and retirements. If coal plant emissions are declining faster than expected, renewable capacity needs to be added sooner to maintain grid reliability.
+Grid Operators: Plan capacity additions and retirements. If coal plant emissions are declining faster than expected, renewable capacity needs to be added sooner to maintain grid reliability.
 
-**Investors:** Identify opportunities in clean energy. Understanding emission trends helps value renewable energy projects and assess stranded asset risk in fossil fuel plants.
+Investors: Identify opportunities in clean energy. Understanding emission trends helps value renewable energy projects and assess stranded asset risk in fossil fuel plants.
 
-**Utilities:** Comply with regulatory requirements and plan capital investments. Emissions forecasts determine whether new pollution controls are needed or if transitioning to cleaner fuels makes more economic sense.
+Utilities: Comply with regulatory requirements and plan capital investments. Emissions forecasts determine whether new pollution controls are needed or if transitioning to cleaner fuels makes more economic sense.
 
 The challenge? Energy time series contain complex patterns: long-term trends (coal-to-gas switching), cyclical behavior (economic cycles), and structural breaks (policy changes). Simple extrapolation fails.
 
@@ -61,7 +61,7 @@ Output shows a 32% decline in absolute emissions despite relatively stable gener
 
 Long Short-Term Memory networks excel at learning long-term dependencies in sequential data. Unlike traditional RNNs, LSTMs have "memory cells" that can retain information across many time steps.
 
-**Why LSTMs for Energy Forecasting?**
+Why LSTMs for Energy Forecasting?
 
 Energy systems have long memory effects: A coal plant retirement today affects emissions for 40+ years. Natural gas prices from previous quarters influence generation decisions. Policy changes create lasting structural shifts.
 
@@ -103,11 +103,11 @@ model.fit(X_train, y_train, epochs=100, batch_size=4, validation_split=0.2)
 ```
 
 The LSTM architecture uses:
-- **Two LSTM layers** (50 units each) to capture temporal patterns
-- **Dropout layers** (20%) to prevent overfitting
-- **Dense layers** for final prediction
+- Two LSTM layers (50 units each) to capture temporal patterns
+- Dropout layers (20%) to prevent overfitting
+- Dense layers for final prediction
 
-Training takes ~5 minutes on a standard laptop. The model learns to predict emissions with **R² = 0.89** on test data.
+Training takes ~5 minutes on a standard laptop. The model learns to predict emissions with R² = 0.89 on test data.
 
 ![LSTM predictions vs actuals](lstm_predictions.png)
 
@@ -115,7 +115,7 @@ Training takes ~5 minutes on a standard laptop. The model learns to predict emis
 
 XGBoost (Extreme Gradient Boosting) is a powerful tree-based method. While it doesn't inherently understand time, we can engineer temporal features to make it work brilliantly for time series.
 
-**Feature Engineering is Key**
+Feature Engineering is Key
 
 The magic of XGBoost for time series lies in creating the right features:
 
@@ -163,7 +163,7 @@ xgb_model = xgb.XGBRegressor(
 xgb_model.fit(X_train, y_train)
 ```
 
-XGBoost achieves **R² = 0.93** on test data—even better than LSTM! 
+XGBoost achieves R² = 0.93 on test data—even better than LSTM! 
 
 XGBoost outperforms for three reasons. Explicit feature engineering captures domain knowledge about how emissions evolve. Robust regularization and tree pruning prevent overfitting. Fast training (seconds versus minutes for LSTM) enables rapid iteration.
 
@@ -226,7 +226,7 @@ sarima_results = sarima.fit()
 forecast = sarima_results.forecast(steps=3)
 ```
 
-SARIMA achieves **R² = 0.85** on test data—respectable, though slightly behind the ML methods.
+SARIMA achieves R² = 0.85 on test data—respectable, though slightly behind the ML methods.
 
 The optimal parameters (2, 1, 1) tell a clear story. AR(2) means use past 2 years to predict. I(1) means first-difference the data (emissions are non-stationary). MA(1) means include 1 year of error correction.
 
@@ -236,7 +236,7 @@ The optimal parameters (2, 1, 1) tell a clear story. AR(2) means use past 2 year
 
 Rather than picking one method, we can combine all three. Ensemble methods often outperform individual models by reducing variance (averaging smooths predictions), capturing different patterns (LSTM sees long-term trends, XGBoost captures recent dynamics, SARIMA provides statistical foundation), and being more robust to model misspecification.
 
-**Simple Averaging**
+Simple Averaging
 
 ```python
 # Average predictions from all three models
@@ -247,7 +247,7 @@ ensemble_predictions = (
 ) / 3
 ```
 
-**Weighted Ensemble (Meta-Learning)**
+Weighted Ensemble (Meta-Learning)
 
 Train a meta-model that learns optimal weights:
 
@@ -281,7 +281,7 @@ Model weights:
 
 The ensemble learns to weight XGBoost most heavily (51%), with LSTM secondary (28%) and SARIMA as a stabilizing factor (21%).
 
-**Results: R² = 0.96** on test data! The ensemble beats all individual models.
+Results: R² = 0.96 on test data! The ensemble beats all individual models.
 
 ![Model comparison showing ensemble superiority](model_comparison.png)
 
@@ -325,7 +325,7 @@ Output:
 6  2030    1,559,344,961
 ```
 
-**The forecast shows a continued 3% annual decline through 2030**, reaching 1.56 billion tons—a 40% reduction from 2007 peak levels.
+The forecast shows a continued 3% annual decline through 2030, reaching 1.56 billion tons—a 40% reduction from 2007 peak levels.
 
 This trajectory assumes:
 - Continued coal retirements (~5-8 GW/year)
@@ -366,26 +366,26 @@ The 80% prediction interval widens over time (±8% by 2030), reflecting increasi
 
 ## Key Takeaways
 
-**1. Ensemble methods win:** Combining LSTM, XGBoost, and SARIMA achieved R² = 0.96, beating any individual model.
+1. Ensemble methods win: Combining LSTM, XGBoost, and SARIMA achieved R² = 0.96, beating any individual model.
 
-**2. Feature engineering matters:** XGBoost with good features (lags, rolling stats, differences) matched LSTM performance with 100x faster training.
+2. Feature engineering matters: XGBoost with good features (lags, rolling stats, differences) matched LSTM performance with 100x faster training.
 
-**3. Domain knowledge helps:** Understanding power sector dynamics (slow-changing infrastructure, policy impacts) improves feature design and model interpretation.
+3. Domain knowledge helps: Understanding power sector dynamics (slow-changing infrastructure, policy impacts) improves feature design and model interpretation.
 
-**4. Quantify uncertainty:** Prediction intervals are crucial for decision-making. The ±8% range by 2030 represents billions of tons of difference.
+4. Quantify uncertainty: Prediction intervals are crucial for decision-making. The ±8% range by 2030 represents billions of tons of difference.
 
-**5. Start simple, add complexity:** SARIMA provides a strong baseline in minutes. Only move to complex models if they provide meaningful improvements.
+5. Start simple, add complexity: SARIMA provides a strong baseline in minutes. Only move to complex models if they provide meaningful improvements.
 
 ## Implementation Tips
 
-**For Production Systems:**
+For Production Systems:
 - Retrain models quarterly as new data arrives
 - Monitor prediction errors for drift
 - Use ensemble methods for robustness
 - Implement automated retraining pipelines
 - Track feature importance changes over time
 
-**Common Pitfalls to Avoid:**
+Common Pitfalls to Avoid:
 - Leaking future information into features
 - Ignoring structural breaks (policy changes)
 - Overfitting on limited data
@@ -395,10 +395,10 @@ The 80% prediction interval widens over time (±8% by 2030), reflecting increasi
 ## So What?
 
 Time series forecasting transforms historical patterns into actionable insights. For the power sector, these forecasts drive:
-- **$100B+ in annual capital allocation** decisions
-- **Climate policy development** across federal and state governments
-- **Grid reliability planning** ensuring lights stay on
-- **Market strategies** for energy traders and investors
+- $100B+ in annual capital allocation decisions
+- Climate policy development across federal and state governments
+- Grid reliability planning ensuring lights stay on
+- Market strategies for energy traders and investors
 
 As the energy transition accelerates, accurate forecasting becomes even more critical. The methods shown here—LSTM for complex patterns, XGBoost for feature-rich modeling, SARIMA for statistical rigor, and ensembles for robustness—provide a comprehensive toolkit for tackling these challenges.
 
@@ -406,7 +406,7 @@ The complete code and tutorial are available in the GitHub repository. Ready to 
 
 ---
 
-**Time Series Forecasting** · **Machine Learning** · **Python** · **Energy** · **Climate**
+Time Series Forecasting · Machine Learning · Python · Energy · Climate
 
 ---
 

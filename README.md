@@ -1,7 +1,7 @@
 # Time Series Forecasting for Power Plant Emissions LSTM XGBoost and SARIMA
 
-**Published:** 2025-10-06
-**Medium:** [https://medium.com/@kyle-t-jones/time-series-forecasting-for-power-plant-emissions-lstm-xgboost-and-sarima-5b69867faa86](https://medium.com/@kyle-t-jones/time-series-forecasting-for-power-plant-emissions-lstm-xgboost-and-sarima-5b69867faa86)
+Published: 2025-10-06
+Medium: [https://medium.com/@kyle-t-jones/time-series-forecasting-for-power-plant-emissions-lstm-xgboost-and-sarima-5b69867faa86](https://medium.com/@kyle-t-jones/time-series-forecasting-for-power-plant-emissions-lstm-xgboost-and-sarima-5b69867faa86)
 
 ## About
 

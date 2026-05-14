@@ -130,7 +130,7 @@ for p, d, q in itertools.product(range(3), range(2), range(3)):
         if results.aic < best_aic:
             best_aic = results.aic
             best_params = (p, d, q)
-    except:
+    except Exception:
         continue
 logger.info(f"Best SARIMA order: {best_params}")
 # Train final model

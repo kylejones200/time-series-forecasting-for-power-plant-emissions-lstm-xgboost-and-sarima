@@ -73,7 +73,7 @@ def apply_weather_adjustment(load_data, temperature_f, humidity_pct):
         adjusted_hour['weather_adjustment'] = weather_factor
         adjusted_hour['temperature_f'] = temperature_f
         adjusted_hour['humidity_pct'] = humidity_pct
-        adjusted_data.append(adjusted_hour)
+        pd.concat([adjusted_data, adjusted_hour])
     
     return adjusted_data
 
@@ -99,7 +99,7 @@ def build_ml_forecast_model(historical_data_list, forecast_horizon=24):
         hour_cos = np.cos(2 * np.pi * hour / 24)
         
         feature_vec = [lag_1, lag_24, lag_168, hour_sin, hour_cos, day_of_week, all_data[i]['load_factor']]
-        features.append(feature_vec)
+        pd.concat([features, feature_vec])
         targets.append(all_data[i + forecast_horizon]['peak_load_mw'])
     
     X = np.array(features)
@@ -213,8 +213,8 @@ def main():
     ml_results = build_ml_forecast_model(historical_data)
     logger.info(f"   Training R²: {ml_results['train_r2']:.3f}")
     logger.info(f"   Testing R²: {ml_results['test_r2']:.3f}")
-    logger.error(f"   Mean Absolute Error: {ml_results['mae_mw']:.2f} MW")
-    logger.error(f"   Mean Absolute Percentage Error: {ml_results['mape_pct']:.2f}%")
+    logger.error(f"   Mean Absolute Error: {ml_results['mae_mw']:.2f} MW", exc_info=True)
+    logger.error(f"   Mean Absolute Percentage Error: {ml_results['mape_pct']:.2f}%", exc_info=True)
     
     logger.info("\n5. Exporting Results...")
     export_to_csv(base_forecast, 'load_forecast_base.csv')

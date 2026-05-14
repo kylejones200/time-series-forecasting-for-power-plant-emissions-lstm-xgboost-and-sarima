@@ -113,7 +113,9 @@ def train_lstm(train_data, test_data, lookback=5):
         'lookback': lookback
     }
 
-def create_lag_features(df, target_col, lags=[1, 2, 3, 5]):
+def create_lag_features(df, target_col, lags=None):
+    if lags is None:
+        lags = [1, 2, 3, 5]
     """Create lagged features for XGBoost"""
     df = df.copy()
     for lag in lags:

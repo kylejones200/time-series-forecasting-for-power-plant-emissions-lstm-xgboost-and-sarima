@@ -180,8 +180,8 @@ for year in range(2024, 2031):
     # Use previous predictions as features
     X_future = create_features_for_year(year, recent_history)
     prediction = full_model.predict(X_future)[0]
-    future_predictions.append(prediction)
-    recent_history.append(prediction)
+    pd.concat([future_predictions, prediction])
+    pd.concat([recent_history, prediction])
 forecast_df = pd.DataFrame({
     'Year': range(2024, 2031),
     'Predicted_CO2': future_predictions
@@ -316,7 +316,9 @@ def train_lstm(train_data, test_data, lookback=5):
         'lookback': lookback
     }
 
-def create_lag_features(df, target_col, lags=[1, 2, 3, 5]):
+def create_lag_features(df, target_col, lags=None):
+    if lags is None:
+        lags = [1, 2, 3, 5]
     """Create lagged features for XGBoost"""
     df = df.copy()
     for lag in lags:

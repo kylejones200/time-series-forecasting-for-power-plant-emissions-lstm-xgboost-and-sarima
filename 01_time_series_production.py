@@ -6,7 +6,6 @@ Trains LSTM, XGBoost, SARIMA, and Ensemble models on historical CO2 data
 
 import pandas as pd
 import numpy as np
-import warnings
 from pathlib import Path
 import logging
 logging.basicConfig(
@@ -14,7 +13,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-warnings.filterwarnings('ignore')
 
 # ML libraries
 from sklearn.preprocessing import StandardScaler

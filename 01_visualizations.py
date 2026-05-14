@@ -7,9 +7,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-# Add parent directory to path to import plot_style
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
 
 """
 Visualization script for Load Forecasting Machine Learning Blog
@@ -22,16 +19,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 
-# Add parent directory to path to import plot_style
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import Tufte plotting utilities
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from tda_utils import setup_tufte_plot, TufteColors
-
-
-
 def generate_architecture_diagram(plot: bool = False):
     """Generate load forecasting architecture diagram."""
     if plot:
@@ -40,10 +29,10 @@ def generate_architecture_diagram(plot: bool = False):
     
     # Data sources layer
         data_sources = [
-            {'name': 'EIA Form 930\nHourly Load Data', 'x': 1, 'color': COLORS['black']},
-            {'name': 'NOAA Weather\nForecasts', 'x': 3.5, 'color': COLORS['black']},
-            {'name': 'EAGLE-I\nOutage Data', 'x': 6, 'color': COLORS['black']},
-            {'name': 'Census ACS\nDemographics', 'x': 8.5, 'color': COLORS['black']}
+            {'name': 'EIA Form 930\nHourly Load Data', 'x': 1, 'color': "#2b2b2b"},
+            {'name': 'NOAA Weather\nForecasts', 'x': 3.5, 'color': "#2b2b2b"},
+            {'name': 'EAGLE-I\nOutage Data', 'x': 6, 'color': "#2b2b2b"},
+            {'name': 'Census ACS\nDemographics', 'x': 8.5, 'color': "#2b2b2b"}
         ]
     
         y_data = 7
@@ -57,7 +46,7 @@ def generate_architecture_diagram(plot: bool = False):
     # Feature engineering layer
         y_features = 5
         rect = plt.Rectangle((1, y_features), 8.5, 1, 
-                            facecolor=COLORS['darkgray'], edgecolor='black', linewidth=2, alpha=0.9)
+                            facecolor="#696969", edgecolor='black', linewidth=2, alpha=0.9)
         ax.add_patch(rect)
         ax.text(5.25, y_features + 0.5, 'Feature Engineering Pipeline\n' + 
                'Lags • Rolling Stats • Calendar • Weather • Cyclical Encoding', 
@@ -66,9 +55,9 @@ def generate_architecture_diagram(plot: bool = False):
     # Model training layer
         y_models = 3
         models = [
-            {'name': 'ARIMA\nBaseline', 'x': 1.5, 'color': COLORS['gray']},
-            {'name': 'LightGBM\nAdvanced', 'x': 4.5, 'color': COLORS['darkgray']},
-            {'name': 'Ensemble\nFusion', 'x': 7.5, 'color': COLORS['gray']}
+            {'name': 'ARIMA\nBaseline', 'x': 1.5, 'color': "#a0a0a0"},
+            {'name': 'LightGBM\nAdvanced', 'x': 4.5, 'color': "#696969"},
+            {'name': 'Ensemble\nFusion', 'x': 7.5, 'color': "#a0a0a0"}
         ]
     
         for model in models:
@@ -81,7 +70,7 @@ def generate_architecture_diagram(plot: bool = False):
     # MLflow tracking
         y_mlflow = 1.5
         rect = plt.Rectangle((3.5, y_mlflow), 3, 0.8, 
-                            facecolor=COLORS['gray'], edgecolor='black', linewidth=2, alpha=0.8)
+                            facecolor="#a0a0a0", edgecolor='black', linewidth=2, alpha=0.8)
         ax.add_patch(rect)
         ax.text(5, y_mlflow + 0.4, 'MLflow Model Registry\nTracking • Versioning • Deployment', 
                ha='center', va='center', fontsize=9, color='white', weight='bold')
@@ -97,7 +86,7 @@ def generate_architecture_diagram(plot: bool = False):
     
         for output in outputs:
             rect = plt.Rectangle((output['x'], y_output), 2, 0.6, 
-                                facecolor=COLORS['black'], edgecolor='black', linewidth=2, alpha=0.7)
+                                facecolor="#2b2b2b", edgecolor='black', linewidth=2, alpha=0.7)
             ax.add_patch(rect)
             ax.text(output['x'] + 1, y_output + 0.3, output['name'], 
                    ha='center', va='center', fontsize=8, color='white', weight='bold')
@@ -139,8 +128,8 @@ def generate_training_pipeline(plot: bool = False):
                3000 * np.sin(np.arange(len(dates)) * 2 * np.pi / (24*7)) + \
                np.random.normal(0, 1000, len(dates))
     
-        ax1.plot(dates, load, linewidth=0.8, color=COLORS['black'], alpha=0.8, label='Historical Load')
-        ax1.fill_between(dates, load - 2000, load + 2000, alpha=0.2, color=COLORS['black'])
+        ax1.plot(dates, load, linewidth=0.8, color="#2b2b2b", alpha=0.8, label='Historical Load')
+        ax1.fill_between(dates, load - 2000, load + 2000, alpha=0.2, color="#2b2b2b")
         ax1.set_title('Historical Load Data (30 Days)', fontsize=12, weight='bold')
         ax1.set_ylabel('Load (MW)', fontsize=10)
         ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
@@ -151,7 +140,7 @@ def generate_training_pipeline(plot: bool = False):
         features = ['mw_lag24', 'temperature', 'mw_lag168', 'hour_sin', 'cooling_dd', 
                     'mw_ma24', 'dow', 'mw_lag1']
         importance = [0.28, 0.22, 0.15, 0.12, 0.10, 0.06, 0.04, 0.03]
-        colors = [COLORS['darkgray'] if i < 3 else COLORS['darkgray'] for i in range(len(features))]
+        colors = ["#696969" if i < 3 else "#696969" for i in range(len(features))]
     
         bars = ax2.barh(features, importance, color=colors, edgecolor='black', linewidth=1)
         ax2.set_xlabel('Feature Importance', fontsize=10)
@@ -170,19 +159,19 @@ def generate_training_pipeline(plot: bool = False):
         width = 0.35
     
         bars1 = ax3.bar(x - width/2, mape, width, label='MAPE (%)', 
-                        color=COLORS['gray'], edgecolor='black', linewidth=1)
+                        color="#a0a0a0", edgecolor='black', linewidth=1)
         ax3_twin = ax3.twinx()
         bars2 = ax3_twin.bar(x + width/2, mae, width, label='MAE (MW)', 
-                            color=COLORS['darkgray'], edgecolor='black', linewidth=1)
+                            color="#696969", edgecolor='black', linewidth=1)
     
         ax3.set_xlabel('Model Type', fontsize=10)
-        ax3.set_ylabel('MAPE (%)', fontsize=10, color=COLORS['gray'])
-        ax3_twin.set_ylabel('MAE (MW)', fontsize=10, color=COLORS['darkgray'])
+        ax3.set_ylabel('MAPE (%)', fontsize=10, color="#a0a0a0")
+        ax3_twin.set_ylabel('MAE (MW)', fontsize=10, color="#696969")
         ax3.set_title('Cross-Validation Performance', fontsize=11, weight='bold')
         ax3.set_xticks(x)
         ax3.set_xticklabels(models)
-        ax3.tick_params(axis='y', labelcolor=COLORS['gray'])
-        ax3_twin.tick_params(axis='y', labelcolor=COLORS['darkgray'])
+        ax3.tick_params(axis='y', labelcolor="#a0a0a0")
+        ax3_twin.tick_params(axis='y', labelcolor="#696969")
     # Add value labels
         for bar in bars1:
             height = bar.get_height()
@@ -199,9 +188,9 @@ def generate_training_pipeline(plot: bool = False):
         train_loss = 5000 * np.exp(-iterations/20) + 600
         val_loss = 5000 * np.exp(-iterations/20) + 800 + 200 * np.sin(iterations/5)
     
-        ax4.plot(iterations, train_loss, linewidth=2, color=COLORS['black'], label='Training Loss')
-        ax4.plot(iterations, val_loss, linewidth=2, color=COLORS['gray'], label='Validation Loss', linestyle='--')
-        ax4.axhline(y=700, color=COLORS['black'], linestyle=':', linewidth=1.5, label='Early Stopping Threshold')
+        ax4.plot(iterations, train_loss, linewidth=2, color="#2b2b2b", label='Training Loss')
+        ax4.plot(iterations, val_loss, linewidth=2, color="#a0a0a0", label='Validation Loss', linestyle='--')
+        ax4.axhline(y=700, color="#2b2b2b", linestyle=':', linewidth=1.5, label='Early Stopping Threshold')
         ax4.set_xlabel('Training Iteration', fontsize=10)
         ax4.set_ylabel('Loss (MAE in MW)', fontsize=10)
         ax4.set_title('Model Training Convergence', fontsize=11, weight='bold')
@@ -235,9 +224,9 @@ def generate_performance_comparison(plot: bool = False):
         ensemble = actual + np.random.normal(0, 550, 24)
     
         ax1.plot(hours, actual, linewidth=3, color='black', label='Actual Load', marker='o', markersize=6)
-        ax1.plot(hours, arima, linewidth=2, color=COLORS['gray'], label='ARIMA', marker='s', markersize=4, alpha=0.8)
-        ax1.plot(hours, lightgbm, linewidth=2, color=COLORS['darkgray'], label='LightGBM', marker='^', markersize=4, alpha=0.8)
-        ax1.plot(hours, ensemble, linewidth=2, color=COLORS['gray'], label='Ensemble', marker='d', markersize=4, alpha=0.8)
+        ax1.plot(hours, arima, linewidth=2, color="#a0a0a0", label='ARIMA', marker='s', markersize=4, alpha=0.8)
+        ax1.plot(hours, lightgbm, linewidth=2, color="#696969", label='LightGBM', marker='^', markersize=4, alpha=0.8)
+        ax1.plot(hours, ensemble, linewidth=2, color="#a0a0a0", label='Ensemble', marker='d', markersize=4, alpha=0.8)
     
         ax1.set_xlabel('Hour of Day', fontsize=10)
         ax1.set_ylabel('Load (MW)', fontsize=10)
@@ -249,7 +238,7 @@ def generate_performance_comparison(plot: bool = False):
         ax2 = fig.add_subplot(gs[1, 0])
         scenarios = ['Baseline', 'Hot Weather', 'High Growth', 'Demand\nResponse']
         peak_loads = [28500, 33200, 29925, 25650]
-        colors_scenario = [COLORS['black'], COLORS['black'], COLORS['gray'], COLORS['darkgray']]
+        colors_scenario = ["#2b2b2b", "#2b2b2b", "#a0a0a0", "#696969"]
     
         bars = ax2.bar(scenarios, peak_loads, color=colors_scenario, edgecolor='black', linewidth=1.5)
         ax2.set_ylabel('Peak Load (MW)', fontsize=10)
@@ -266,9 +255,9 @@ def generate_performance_comparison(plot: bool = False):
         errors_arima = np.random.normal(0, 1000, 1000)
         errors_lgbm = np.random.normal(0, 600, 1000)
     
-        ax3.hist(errors_arima, bins=40, alpha=0.6, color=COLORS['gray'], 
+        ax3.hist(errors_arima, bins=40, alpha=0.6, color="#a0a0a0", 
                 label='ARIMA', edgecolor='black', linewidth=0.5)
-        ax3.hist(errors_lgbm, bins=40, alpha=0.6, color=COLORS['darkgray'], 
+        ax3.hist(errors_lgbm, bins=40, alpha=0.6, color="#696969", 
                 label='LightGBM', edgecolor='black', linewidth=0.5)
         ax3.set_xlabel('Forecast Error (MW)', fontsize=10)
         ax3.set_ylabel('Frequency', fontsize=10)
@@ -282,17 +271,17 @@ def generate_performance_comparison(plot: bool = False):
         day_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         mape_by_day = [2.5, 2.3, 2.4, 2.8, 3.2, 4.1, 3.8]
     
-        bars = ax4.bar(days, mape_by_day, color=COLORS['black'], edgecolor='black', linewidth=1.5)
-        bars[5].set_color(COLORS['gray'])  # Highlight weekend
-        bars[6].set_color(COLORS['gray'])
+        bars = ax4.bar(days, mape_by_day, color="#2b2b2b", edgecolor='black', linewidth=1.5)
+        bars[5].set_color("#a0a0a0")  # Highlight weekend
+        bars[6].set_color("#a0a0a0")
     
         ax4.set_xlabel('Day of Week', fontsize=10)
         ax4.set_ylabel('MAPE (%)', fontsize=10)
         ax4.set_title('Forecast Accuracy by Day of Week', fontsize=11, weight='bold')
         ax4.set_xticks(days)
         ax4.set_xticklabels(day_labels)
-        ax4.axhline(y=3.0, color=COLORS['black'], linestyle='--', linewidth=1.5, alpha=0.7)
-        ax4.text(6.5, 3.1, 'Target', fontsize=8, color=COLORS['black'])
+        ax4.axhline(y=3.0, color="#2b2b2b", linestyle='--', linewidth=1.5, alpha=0.7)
+        ax4.text(6.5, 3.1, 'Target', fontsize=8, color="#2b2b2b")
     
         for bar, mape in zip(bars, mape_by_day):
             ax4.text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.1,

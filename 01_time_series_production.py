@@ -25,12 +25,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 
-# Import Tufte plotting utilities
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from tda_utils import setup_tufte_plot, TufteColors
-
-
 # Configuration
 DATA_PATH = Path('../../egrid_all_plants_1996-2023.parquet')
 TRAIN_END_YEAR = 2020

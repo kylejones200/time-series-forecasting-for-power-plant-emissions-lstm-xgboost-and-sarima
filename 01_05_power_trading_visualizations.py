@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import signalplot
 import sys
 import os
 
@@ -8,9 +9,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-# Add parent directory to path to import plot_style
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
 
 """
 Generate minimalist visualizations for Power Trading blogs (01-05).
@@ -23,22 +21,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
 
-# Add parent directory to path to import plot_style
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import Tufte plotting utilities
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from tda_utils import setup_tufte_plot, TufteColors
-
-
-
-def save_fig(filename):
-    """Save plot in minimalist format."""
-    plt.tight_layout()
-    plt.savefig(filename, dpi=300, bbox_inches="tight")
-    plt.close()
-
 def apply_minimalist_style(ax):
     """Apply minimalist style to axis."""
     ax.spines["top"].set_visible(False)
@@ -98,7 +82,7 @@ def create_01_main(plot: bool = False):
         ax2.legend(loc='upper right', frameon=False, fontsize=9)
         ax2.set_xticks(range(0, 24, 3))
     
-        save_fig('01_load_forecasting_main.png')
+        signalplot.save('01_load_forecasting_main.png')
     logger.info("✓ Created: 01_load_forecasting_main.png")
 
 def create_01_accuracy(plot: bool = False):
@@ -140,7 +124,7 @@ def create_01_accuracy(plot: bool = False):
         ax2.set_xlabel('Forecast Error (MW)', fontsize=10)
         ax2.set_ylabel('Frequency', fontsize=10)
     
-        save_fig('01_load_forecasting_accuracy.png')
+        signalplot.save('01_load_forecasting_accuracy.png')
     logger.info("✓ Created: 01_load_forecasting_accuracy.png")
 
 # ==================== BLOG 02: LMP Analysis ====================
@@ -194,7 +178,7 @@ def create_02_main(plot: bool = False):
         ax2.set_ylabel('Spread ($/MWh)', fontsize=10)
         ax2.legend(loc='upper left', frameon=False, fontsize=9)
     
-        save_fig('02_lmp_analysis_main.png')
+        signalplot.save('02_lmp_analysis_main.png')
     logger.info("✓ Created: 02_lmp_analysis_main.png")
 
 # Note: Blog 02 originally has only one image referenced, but the file 02_lmp_analysis_accuracy.png exists
@@ -251,7 +235,7 @@ def create_03_main(plot: bool = False):
         ax2.set_ylabel('Marginal Cost ($/MWh)', fontsize=10)
         ax2.set_xticks(range(0, 24, 3))
     
-        save_fig('03_generation_dispatch_main.png')
+        signalplot.save('03_generation_dispatch_main.png')
     logger.info("✓ Created: 03_generation_dispatch_main.png")
 
 # Note: Skipping results plot as it's not crucial and simplifies the script
@@ -301,7 +285,7 @@ def create_04_main(plot: bool = False):
         ax2.set_ylabel('Profit/Loss ($/MWh)', fontsize=10)
         ax2.legend(loc='upper right', frameon=False, fontsize=9)
     
-        save_fig('04_power_options_main.png')
+        signalplot.save('04_power_options_main.png')
     logger.info("✓ Created: 04_power_options_main.png")
 
 # Note: Skipping performance plot
@@ -365,18 +349,17 @@ def create_05_main(plot: bool = False):
         ax2.set_yticklabels(categories, fontsize=10)
         ax2.set_xlim(0, 60)
     
-        save_fig('05_risk_management_main.png')
+        signalplot.save('05_risk_management_main.png')
     logger.info("✓ Created: 05_risk_management_main.png")
 
 # Note: Skipping excellence plot
 
 def main():
     """Generate all visualizations for blogs 01-05."""
-    set_tufte_defaults()
+    signalplot.apply(font_family='serif')
     logger.info("POWER TRADING BLOGS (01-05) - VISUALIZATION GENERATION")
     logger.info()
     
-    plt.rcParams['font.family'] = 'serif'
     
     logger.info("Creating visualizations...")
     create_01_main()

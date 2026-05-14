@@ -1,3 +1,4 @@
+import signalplot
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -20,10 +21,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 np.random.seed(42)
 
-plt.rcParams.update({'font.family': 'serif','axes.spines.top': False,'axes.spines.right': False,'axes.linewidth': 0.8})
+signalplot.apply(font_family='serif')
 
-def save_fig(path: str):
-    plt.tight_layout(); plt.savefig(path, bbox_inches='tight'); plt.close()
 
 @dataclass
 class Config:
@@ -119,7 +118,7 @@ def fit_eval_rf(df: pd.DataFrame, cfg: Config, plot: bool = False):
             plt.plot(idx[te], model.predict(X[te]), label="RF Pred", linestyle="--")
             plt.legend(); plt.title("RandomForest (lag features) – Chrono CV last fold")
             plt.xlabel("Time"); plt.ylabel(cfg.target_col)
-            save_fig("power_rf_last_fold.png")
+            signalplot.save("power_rf_last_fold.png")
 
 
 def fit_eval_sarimax(df: pd.DataFrame, cfg: Config, order=(1,1,1), seasonal_order=(0,0,0,0)):
@@ -140,7 +139,7 @@ def fit_eval_sarimax(df: pd.DataFrame, cfg: Config, order=(1,1,1), seasonal_orde
         plt.plot(y_te.index, yhat.values, label="SARIMAX Forecast", linestyle="--")
         plt.legend(); plt.title("SARIMAX – Chronological holdout")
         plt.xlabel("Time"); plt.ylabel(cfg.target_col)
-        save_fig("power_sarimax_holdout.png")
+        signalplot.save("power_sarimax_holdout.png")
 
 
 def main():

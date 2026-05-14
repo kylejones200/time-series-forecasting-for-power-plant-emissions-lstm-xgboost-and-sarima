@@ -377,9 +377,7 @@ def create_05_main(plot: bool = False):
 def main():
     """Generate all visualizations for blogs 01-05."""
     set_tufte_defaults()
-    logger.info("=" * 60)
     logger.info("POWER TRADING BLOGS (01-05) - VISUALIZATION GENERATION")
-    logger.info("=" * 60)
     logger.info()
     
     plt.rcParams['font.family'] = 'serif'
@@ -393,9 +391,7 @@ def main():
     create_05_main()
     
     logger.info()
-    logger.info("=" * 60)
     logger.info("All visualizations created successfully!")
-    logger.info("=" * 60)
 
 if __name__ == "__main__":
     main()

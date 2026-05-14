@@ -497,9 +497,7 @@ def visualize_results(data, models, ensemble, test_start_year, plot: bool = Fals
 
 def main():
     """Main execution"""
-    logger.info("=" * 80)
     logger.info("TIME SERIES FORECASTING - PRODUCTION RUN")
-    logger.info("=" * 80)
     
     # Load data
     data = load_and_prepare_data()
@@ -523,11 +521,8 @@ def main():
     visualize_results(data, models, ensemble_results, TEST_START_YEAR)
     
     # Summary
-    logger.info("\n" + "=" * 80)
-    logger.info("RESULTS SUMMARY")
-    logger.info("=" * 80)
+    logger.info("=== RESULTS SUMMARY ===")
     logger.info(f"{'Model':<15} {'MAE (B tons)':<15} {'RMSE (B tons)':<15} {'Improvement vs Best Single'}")
-    logger.info("-" * 80)
     
     best_single_mae = min(m['mae'] for m in models)
     
@@ -537,7 +532,6 @@ def main():
         rmse = model['rmse'] if 'rmse' in model else np.sqrt(mean_squared_error(model['actuals'], model['predictions']))
         logger.info(f"{name:<15} {model['mae']/1e9:<15.3f} {rmse/1e9:<15.3f} {improvement:+.1f}%")
     
-    logger.info("=" * 80)
     logger.info("✓ Complete!")
     
     return {

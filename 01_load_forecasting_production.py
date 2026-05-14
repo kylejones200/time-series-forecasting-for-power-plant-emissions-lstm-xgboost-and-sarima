@@ -186,9 +186,7 @@ def export_to_csv(load_data, filename):
 
 def main():
     """Execute load forecasting analysis."""
-    logger.info("=" * 70)
     logger.info("LOAD FORECASTING FOR POWER TRADING - PRODUCTION RUN")
-    logger.info("=" * 70)
     
     start_time = time.time()
     
@@ -233,14 +231,11 @@ def main():
     
     execution_time = time.time() - start_time
     
-    logger.info("\n" + "=" * 70)
-    logger.info("PERFORMANCE METRICS")
-    logger.info("=" * 70)
+    logger.info("=== PERFORMANCE METRICS ===")
     logger.info(f"Total Execution Time: {execution_time:.3f} seconds")
     logger.info(f"Forecast Accuracy (MAPE): {ml_results['mape_pct']:.2f}%")
     logger.info(f"Model Training Time: < 1 second")
     logger.info(f"Forecasts Generated: {len(base_forecast) + len(hot_weather_forecast) + len(week_forecast)}")
-    logger.info("=" * 70)
 
 if __name__ == "__main__":
     main()

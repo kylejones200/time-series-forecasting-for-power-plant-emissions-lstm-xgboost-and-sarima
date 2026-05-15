@@ -16,14 +16,13 @@ logger = logging.getLogger(__name__)
 
 # ML libraries
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 import xgboost as xgb
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 
-import sys
 # Configuration
 DATA_PATH = Path('../../egrid_all_plants_1996-2023.parquet')
 TRAIN_END_YEAR = 2020

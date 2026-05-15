@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 import signalplot
-import sys
-import os
 
 import logging
 logging.basicConfig(
@@ -18,11 +16,9 @@ Uses serif fonts, clean axes, and high-quality output.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
 
 
 
-from pathlib import Path
 def apply_minimalist_style(ax):
     """Apply minimalist style to axis."""
     ax.spines["top"].set_visible(False)

@@ -1,5 +1,3 @@
-import sys
-import os
 
 import logging
 logging.basicConfig(
@@ -17,10 +15,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime, timedelta
 
 
-from pathlib import Path
 def generate_architecture_diagram(plot: bool = False):
     """Generate load forecasting architecture diagram."""
     if plot:
@@ -142,7 +138,7 @@ def generate_training_pipeline(plot: bool = False):
         importance = [0.28, 0.22, 0.15, 0.12, 0.10, 0.06, 0.04, 0.03]
         colors = ["#696969" if i < 3 else "#696969" for i in range(len(features))]
     
-        bars = ax2.barh(features, importance, color=colors, edgecolor='black', linewidth=1)
+        ax2.barh(features, importance, color=colors, edgecolor='black', linewidth=1)
         ax2.set_xlabel('Feature Importance', fontsize=10)
         ax2.set_title('LightGBM Feature Importance', fontsize=11, weight='bold')
         ax2.set_xlim(0, 0.35)
@@ -201,7 +197,7 @@ def generate_training_pipeline(plot: bool = False):
         optimal_iter = 60
         ax4.annotate('Optimal Model', xy=(optimal_iter, train_loss[optimal_iter-1]), 
                     xytext=(optimal_iter+15, train_loss[optimal_iter-1]+1000),
-                    arrowprops=dict(arrowstyle='->', color='black', lw=1.5),
+                    arrowprops={'arrowstyle': '->', 'color': 'black', 'lw': 1.5},
                     fontsize=9, weight='bold')
     
         plt.savefig('01_load_forecasting_training.png', bbox_inches='tight', dpi=300)
@@ -308,7 +304,7 @@ def generate_performance_comparison(plot: bool = False):
     # Add correlation values
         for i in range(len(features_short)):
             for j in range(len(features_short)):
-                text = ax5.text(j, i, f'{corr_matrix[i, j]:.2f}',
+                ax5.text(j, i, f'{corr_matrix[i, j]:.2f}',
                               ha="center", va="center", color="black" if abs(corr_matrix[i, j]) < 0.7 else "white",
                               fontsize=8, weight='bold')
     

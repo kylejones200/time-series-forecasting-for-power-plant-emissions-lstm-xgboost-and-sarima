@@ -19,8 +19,6 @@ from sklearn.preprocessing import StandardScaler
 import time
 import csv
 
-import sys
-from pathlib import Path
 def generate_load_curve(base_load_mw=9300, date=None):
     """Generate realistic 24-hour load curve."""
     if date is None:
@@ -28,7 +26,7 @@ def generate_load_curve(base_load_mw=9300, date=None):
     
     hourly_data = []
     for hour in range(24):
-        load_factor = np.select([6 <= hour <= 9, 17 <= hour <= 21, 22 <= hour or hour <= 5], [0.85 + np.random.uniform(-0.03, 0.03), 0.95 + np.random.uniform(-0.03, 0.03), 0.6 + np.random.uniform(-0.03, 0.03)], default=0.75 + np.random.uniform(-0.03, 0.03))
+        load_factor = np.select([6 <= hour <= 9, 17 <= hour <= 21, hour >= 22 or hour <= 5], [0.85 + np.random.uniform(-0.03, 0.03), 0.95 + np.random.uniform(-0.03, 0.03), 0.6 + np.random.uniform(-0.03, 0.03)], default=0.75 + np.random.uniform(-0.03, 0.03))
         
         peak_load = base_load_mw * load_factor
         average_load = peak_load * 0.70
@@ -229,7 +227,7 @@ def main():
     logger.info("=== PERFORMANCE METRICS ===")
     logger.info(f"Total Execution Time: {execution_time:.3f} seconds")
     logger.info(f"Forecast Accuracy (MAPE): {ml_results['mape_pct']:.2f}%")
-    logger.info(f"Model Training Time: < 1 second")
+    logger.info("Model Training Time: < 1 second")
     logger.info(f"Forecasts Generated: {len(base_forecast) + len(hot_weather_forecast) + len(week_forecast)}")
 
 if __name__ == "__main__":

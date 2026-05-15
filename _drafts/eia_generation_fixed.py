@@ -1,54 +1,54 @@
-import signalplot
+import logging
+from dataclasses import dataclass
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from pathlib import Path
-from dataclasses import dataclass
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import mean_absolute_error
+import signalplot
 import statsmodels.api as sm
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import TimeSeriesSplit
 
-import logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 np.random.seed(42)
 
-signalplot.apply(font_family='serif')
-
-
+signalplot.apply(font_family="serif")
 
 
 @dataclass
 class Config:
-    csv_path: str = (
-        "/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv"
-    )
+    csv_path: str = "/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv"
     freq: str = "MS"
     horizon: int = 12
     n_splits: int = 5
 
-def load_config(config_path=None) -> 'Config':
+
+def load_config(config_path=None) -> "Config":
     """Build Config from config.yaml, falling back to dataclass defaults."""
     if config_path is None:
-        config_path = Path(__file__).parent / 'config.yaml'
+        config_path = Path(__file__).parent / "config.yaml"
     if not config_path.exists():
         return Config()
     with open(config_path) as _f:
         import yaml as _yaml
-        raw = _yaml.safe_load(_f) or {}
-    _d = raw.get('data', {})
-    _m = raw.get('model', {})
-    _o = raw.get('output', {})
-    return Config(
-        csv_path=_d.get('input_file', '/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv'),
-        freq=_d.get('freq', 'MS'),
-        horizon=_m.get('horizon', 12),
-        n_splits=_d.get('n_splits', 5),
-    )
 
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get("data", {})
+    _m = raw.get("model", {})
+    _o = raw.get("output", {})
+    return Config(
+        csv_path=_d.get(
+            "input_file",
+            "/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv",
+        ),
+        freq=_d.get("freq", "MS"),
+        horizon=_m.get("horizon", 12),
+        n_splits=_d.get("n_splits", 5),
+    )
 
 
 def load_eia_series(cfg: Config) -> pd.Series:
@@ -119,16 +119,16 @@ def main(plot: bool = False):
     if last:
         tr_idx, tr_vals, te_idx, te_vals, ets_vals, arima_vals = last
     if plot:
-            plt.figure(figsize=(9, 4))
-            plt.plot(tr_idx, tr_vals, label="Train")
-            plt.plot(te_idx, te_vals, label="Test")
-            plt.plot(te_idx, ets_vals, label="ETS Forecast", linestyle="--")
-            plt.plot(te_idx, arima_vals, label="SARIMAX Forecast", linestyle=":")
-            plt.legend()
-            plt.title("EIA Generation – Rolling-Origin (last fold)")
-            plt.xlabel("Time")
-            plt.ylabel("Value")
-            signalplot.save("eia_generation_last_fold.png")
+        plt.figure(figsize=(9, 4))
+        plt.plot(tr_idx, tr_vals, label="Train")
+        plt.plot(te_idx, te_vals, label="Test")
+        plt.plot(te_idx, ets_vals, label="ETS Forecast", linestyle="--")
+        plt.plot(te_idx, arima_vals, label="SARIMAX Forecast", linestyle=":")
+        plt.legend()
+        plt.title("EIA Generation – Rolling-Origin (last fold)")
+        plt.xlabel("Time")
+        plt.ylabel("Value")
+        signalplot.save("eia_generation_last_fold.png")
 
 
 if __name__ == "__main__":

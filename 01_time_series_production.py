@@ -4,6 +4,9 @@ Production Time Series Forecasting for Power Plant Emissions
 Trains LSTM, XGBoost, SARIMA, and Ensemble models on historical CO2 data
 """
 
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
 import logging
 from pathlib import Path
 
@@ -21,8 +24,6 @@ import xgboost as xgb
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-from tensorflow import keras
-from tensorflow.keras import layers
 
 # Configuration
 DATA_PATH = Path("../../egrid_all_plants_1996-2023.parquet")
@@ -31,6 +32,60 @@ TEST_START_YEAR = 2021
 FORECAST_HORIZON = 3  # Years to forecast beyond data
 RANDOM_STATE = 42
 
+
+class _LSTMForecaster(nn.Module):
+    """LSTM forecaster (auto-generated PyTorch replacement for Keras Sequential)."""
+    def __init__(self, n_features: int, hidden: int = 64, output_size: int = 1,
+                 n_layers: int = 2, dropout: float = 0.2):
+        super().__init__()
+        self.lstm = nn.LSTM(n_features, hidden, num_layers=n_layers,
+                            batch_first=True, dropout=dropout if n_layers > 1 else 0)
+        self.drop = nn.Dropout(dropout)
+        self.fc = nn.Linear(hidden, output_size)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out, _ = self.lstm(x)
+        return self.fc(self.drop(out[:, -1, :]))
+
+def _train_torch(model: nn.Module, X_train, y_train, *,
+                 epochs: int = 100, batch_size: int = 4,
+                 lr: float = 0.001, validation_split: float = 0.2,
+                 patience: int = 15) -> nn.Module:
+    """Standard training loop replacing  + model.fit()."""
+    X_t = torch.FloatTensor(X_train)
+    y_t = torch.FloatTensor(y_train)
+    if y_t.dim() == 1:
+        y_t = y_t.unsqueeze(1)
+    n_val = max(1, int(len(X_t) * validation_split))
+    X_val, y_val = X_t[-n_val:], y_t[-n_val:]
+    X_tr, y_tr = X_t[:-n_val], y_t[:-n_val]
+    loader = DataLoader(TensorDataset(X_tr, y_tr), batch_size=batch_size, shuffle=True)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.MSELoss()
+    best, wait = float("inf"), 0
+    for _ in range(epochs):
+        model.train()
+        for xb, yb in loader:
+            optimizer.zero_grad()
+            criterion(model(xb), yb).backward()
+            optimizer.step()
+        model.eval()
+        with torch.no_grad():
+            val_loss = criterion(model(X_val), y_val).item()
+        if val_loss < best:
+            best, wait = val_loss, 0
+        else:
+            wait += 1
+            if wait >= patience:
+                break
+    return model
+
+
+def _predict_torch(model: nn.Module, X_test) -> "np.ndarray":
+    """Replace model.predict()."""
+    model.eval()
+    with torch.no_grad():
+        return model(torch.FloatTensor(X_test)).numpy()
 
 def load_and_prepare_data():
     """Load and aggregate data to yearly time series"""
@@ -89,8 +144,7 @@ def build_lstm_model(lookback, n_features=1):
             layers.Dense(1),
         ]
     )
-    model.compile(optimizer="adam", loss="mse", metrics=["mae"])
-    return model
+        return model
 
 
 def train_lstm(train_data, test_data, lookback=5):
@@ -111,20 +165,12 @@ def train_lstm(train_data, test_data, lookback=5):
 
     # Build and train
     model = build_lstm_model(lookback)
-    model.fit(
-        X_train,
-        y_train,
-        epochs=100,
-        batch_size=4,
-        validation_split=0.2,
-        verbose=0,
-        callbacks=[
-            keras.callbacks.EarlyStopping(patience=15, restore_best_weights=True)
+    _train_torch(model, X_train, y_train)
         ],
     )
 
     # Predict
-    y_pred = model.predict(X_test, verbose=0)
+    y_pred = _predict_torch(model, X_test, verbose=0)
     y_pred_unscaled = scaler.inverse_transform(y_pred)
     y_test_unscaled = scaler.inverse_transform(y_test.reshape(-1, 1))
 
@@ -184,10 +230,10 @@ def train_xgboost(train_data, test_data):
         colsample_bytree=0.8,
         random_state=RANDOM_STATE,
     )
-    model.fit(X_train, y_train, verbose=False)
+    _train_torch(model, X_train, y_train)
 
     # Predict
-    y_pred = model.predict(X_test)
+    y_pred = _predict_torch(model, X_test)
 
     mae = mean_absolute_error(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
@@ -213,7 +259,7 @@ def train_sarima(train_data, test_data):
 
     # Train SARIMA(1,1,1)
     model = SARIMAX(train_ts, order=(1, 1, 1), seasonal_order=(0, 0, 0, 0))
-    fitted = model.fit(disp=False, maxiter=200)
+    fitted = _train_torch(model, False, 200)
 
     # Forecast
     forecast = fitted.forecast(steps=len(test_ts))

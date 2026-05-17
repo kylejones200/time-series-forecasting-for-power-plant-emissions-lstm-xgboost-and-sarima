@@ -121,7 +121,7 @@ def build_ml_forecast_model(historical_data_list, forecast_horizon=24):
             day_of_week,
             all_data[i]["load_factor"],
         ]
-        pd.concat([features, feature_vec])
+        features.append(feature_vec)
         targets.append(all_data[i + forecast_horizon]["peak_load_mw"])
 
     X = np.array(features)

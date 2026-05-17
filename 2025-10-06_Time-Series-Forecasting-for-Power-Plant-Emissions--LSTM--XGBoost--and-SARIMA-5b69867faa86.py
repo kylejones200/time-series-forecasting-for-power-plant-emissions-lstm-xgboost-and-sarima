@@ -240,8 +240,8 @@ for year in range(2024, 2031):
     # Use previous predictions as features
     X_future = create_features_for_year(year, recent_history)
     prediction = _predict_torch(full_model, X_future)[0]
-    pd.concat([future_predictions, prediction])
-    pd.concat([recent_history, prediction])
+    future_predictions.append(prediction)
+    recent_history.append(prediction)
 forecast_df = pd.DataFrame(
     {"Year": range(2024, 2031), "Predicted_CO2": future_predictions}
 )

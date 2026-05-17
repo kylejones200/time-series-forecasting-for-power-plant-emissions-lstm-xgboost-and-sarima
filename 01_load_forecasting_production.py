@@ -86,7 +86,7 @@ def apply_weather_adjustment(load_data, temperature_f, humidity_pct):
         adjusted_hour["weather_adjustment"] = weather_factor
         adjusted_hour["temperature_f"] = temperature_f
         adjusted_hour["humidity_pct"] = humidity_pct
-        pd.concat([adjusted_data, adjusted_hour])
+        adjusted_data.append(adjusted_hour)
 
     return adjusted_data
 

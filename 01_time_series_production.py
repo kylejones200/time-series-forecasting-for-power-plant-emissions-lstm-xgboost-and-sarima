@@ -144,7 +144,7 @@ def build_lstm_model(lookback, n_features=1):
             layers.Dense(1),
         ]
     )
-        return model
+    return model
 
 
 def train_lstm(train_data, test_data, lookback=5):
@@ -166,8 +166,6 @@ def train_lstm(train_data, test_data, lookback=5):
     # Build and train
     model = build_lstm_model(lookback)
     _train_torch(model, X_train, y_train)
-        ],
-    )
 
     # Predict
     y_pred = _predict_torch(model, X_test, verbose=0)

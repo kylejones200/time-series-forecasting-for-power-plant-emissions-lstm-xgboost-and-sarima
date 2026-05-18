@@ -4,26 +4,26 @@ Production Time Series Forecasting for Power Plant Emissions
 Trains LSTM, XGBoost, SARIMA, and Ensemble models on historical CO2 data
 """
 
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
 import logging
 from pathlib import Path
 
+import keras
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
-# ML libraries
-import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
 import xgboost as xgb
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from tensorflow.keras import layers
+from torch.utils.data import DataLoader, TensorDataset
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
+# ML libraries
 
 # Configuration
 DATA_PATH = Path("../../egrid_all_plants_1996-2023.parquet")
@@ -35,11 +35,23 @@ RANDOM_STATE = 42
 
 class _LSTMForecaster(nn.Module):
     """LSTM forecaster (auto-generated PyTorch replacement for Keras Sequential)."""
-    def __init__(self, n_features: int, hidden: int = 64, output_size: int = 1,
-                 n_layers: int = 2, dropout: float = 0.2):
+
+    def __init__(
+        self,
+        n_features: int,
+        hidden: int = 64,
+        output_size: int = 1,
+        n_layers: int = 2,
+        dropout: float = 0.2,
+    ):
         super().__init__()
-        self.lstm = nn.LSTM(n_features, hidden, num_layers=n_layers,
-                            batch_first=True, dropout=dropout if n_layers > 1 else 0)
+        self.lstm = nn.LSTM(
+            n_features,
+            hidden,
+            num_layers=n_layers,
+            batch_first=True,
+            dropout=dropout if n_layers > 1 else 0,
+        )
         self.drop = nn.Dropout(dropout)
         self.fc = nn.Linear(hidden, output_size)
 
@@ -47,10 +59,18 @@ class _LSTMForecaster(nn.Module):
         out, _ = self.lstm(x)
         return self.fc(self.drop(out[:, -1, :]))
 
-def _train_torch(model: nn.Module, X_train, y_train, *,
-                 epochs: int = 100, batch_size: int = 4,
-                 lr: float = 0.001, validation_split: float = 0.2,
-                 patience: int = 15) -> nn.Module:
+
+def _train_torch(
+    model: nn.Module,
+    X_train,
+    y_train,
+    *,
+    epochs: int = 100,
+    batch_size: int = 4,
+    lr: float = 0.001,
+    validation_split: float = 0.2,
+    patience: int = 15,
+) -> nn.Module:
     """Standard training loop replacing  + model.fit()."""
     X_t = torch.FloatTensor(X_train)
     y_t = torch.FloatTensor(y_train)
@@ -87,11 +107,11 @@ def _predict_torch(model: nn.Module, X_test) -> "np.ndarray":
     with torch.no_grad():
         return model(torch.FloatTensor(X_test)).numpy()
 
+
 def load_and_prepare_data():
     """Load and aggregate data to yearly time series"""
     logger.info("Loading data...")
     plants = pd.read_parquet(DATA_PATH)
-
     # Aggregate by year
     yearly = (
         plants.groupby("data_year")
@@ -107,11 +127,9 @@ def load_and_prepare_data():
         )
         .reset_index()
     )
-
     yearly.columns = ["year", "generation_mwh", "co2_tons"]
     yearly["carbon_intensity"] = yearly["co2_tons"] / yearly["generation_mwh"]
     yearly = yearly.sort_values("year").reset_index(drop=True)
-
     logger.info(
         f"Loaded {len(yearly)} years of data ({yearly['year'].min()}-{yearly['year'].max()})"
     )
@@ -150,33 +168,25 @@ def build_lstm_model(lookback, n_features=1):
 def train_lstm(train_data, test_data, lookback=5):
     """Train LSTM model"""
     logger.info("\n[1/4] Training LSTM...")
-
     # Scale data
     scaler = StandardScaler()
     train_scaled = scaler.fit_transform(train_data[["co2_tons"]])
     test_scaled = scaler.transform(test_data[["co2_tons"]])
-
     # Create sequences
     X_train, y_train = create_sequences(train_scaled.flatten(), lookback)
     X_test, y_test = create_sequences(test_scaled.flatten(), lookback)
-
     X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
     X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
-
     # Build and train
     model = build_lstm_model(lookback)
     _train_torch(model, X_train, y_train)
-
     # Predict
     y_pred = _predict_torch(model, X_test, verbose=0)
     y_pred_unscaled = scaler.inverse_transform(y_pred)
     y_test_unscaled = scaler.inverse_transform(y_test.reshape(-1, 1))
-
     mae = mean_absolute_error(y_test_unscaled, y_pred_unscaled)
     rmse = np.sqrt(mean_squared_error(y_test_unscaled, y_pred_unscaled))
-
     logger.info(f"  MAE: {mae / 1e9:.3f}B tons | RMSE: {rmse / 1e9:.3f}B tons")
-
     return {
         "model": model,
         "scaler": scaler,
@@ -203,22 +213,18 @@ def create_lag_features(df, target_col, lags=None):
 def train_xgboost(train_data, test_data):
     """Train XGBoost model"""
     logger.info("\n[2/4] Training XGBoost...")
-
     # Create features
     train_feat = create_lag_features(train_data.copy(), "co2_tons")
     test_feat = create_lag_features(test_data.copy(), "co2_tons")
-
     feature_cols = [
         c
         for c in train_feat.columns
         if c not in ["year", "co2_tons", "generation_mwh", "carbon_intensity"]
     ]
-
     X_train = train_feat[feature_cols]
     y_train = train_feat["co2_tons"]
     X_test = test_feat[feature_cols]
     y_test = test_feat["co2_tons"]
-
     # Train
     model = xgb.XGBRegressor(
         n_estimators=200,
@@ -229,15 +235,11 @@ def train_xgboost(train_data, test_data):
         random_state=RANDOM_STATE,
     )
     _train_torch(model, X_train, y_train)
-
     # Predict
     y_pred = _predict_torch(model, X_test)
-
     mae = mean_absolute_error(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-
     logger.info(f"  MAE: {mae / 1e9:.3f}B tons | RMSE: {rmse / 1e9:.3f}B tons")
-
     return {
         "model": model,
         "predictions": y_pred,
@@ -251,22 +253,16 @@ def train_xgboost(train_data, test_data):
 def train_sarima(train_data, test_data):
     """Train SARIMA model"""
     logger.info("\n[3/4] Training SARIMA...")
-
     train_ts = train_data.set_index("year")["co2_tons"]
     test_ts = test_data.set_index("year")["co2_tons"]
-
     # Train SARIMA(1,1,1)
     model = SARIMAX(train_ts, order=(1, 1, 1), seasonal_order=(0, 0, 0, 0))
     fitted = _train_torch(model, False, 200)
-
     # Forecast
     forecast = fitted.forecast(steps=len(test_ts))
-
     mae = mean_absolute_error(test_ts, forecast)
     rmse = np.sqrt(mean_squared_error(test_ts, forecast))
-
     logger.info(f"  MAE: {mae / 1e9:.3f}B tons | RMSE: {rmse / 1e9:.3f}B tons")
-
     return {
         "model": fitted,
         "predictions": forecast.values,
@@ -279,7 +275,6 @@ def train_sarima(train_data, test_data):
 def create_ensemble(models, weights=None):
     """Create weighted ensemble of predictions"""
     logger.info("\n[4/4] Creating Ensemble...")
-
     if weights is None:
         # Weight by inverse MAE
         maes = [m["mae"] for m in models]
@@ -288,19 +283,15 @@ def create_ensemble(models, weights=None):
 
     # Align predictions (they may have different lengths due to lookback)
     min_len = min(len(m["predictions"]) for m in models)
-
     ensemble_pred = np.zeros(min_len)
     for model, weight in zip(models, weights):
         ensemble_pred += weight * model["predictions"][-min_len:]
 
     actuals = models[0]["actuals"][-min_len:]
-
     mae = mean_absolute_error(actuals, ensemble_pred)
     rmse = np.sqrt(mean_squared_error(actuals, ensemble_pred))
-
     logger.info(f"  Weights: {[f'{w:.3f}' for w in weights]}")
     logger.info(f"  MAE: {mae / 1e9:.3f}B tons | RMSE: {rmse / 1e9:.3f}B tons")
-
     return {
         "predictions": ensemble_pred,
         "actuals": actuals,
@@ -313,14 +304,11 @@ def create_ensemble(models, weights=None):
 def visualize_results(data, models, ensemble, test_start_year, plot: bool = False):
     """Create comparison visualization"""
     logger.info("\nGenerating visualizations...")
-
     if plot:
         fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-
         # Get test years
         test_data = data[data["year"] >= test_start_year]
         test_years = test_data["year"].values
-
         # Plot 1: All models comparison
         ax1 = axes[0, 0]
         ax1.plot(
@@ -331,7 +319,6 @@ def visualize_results(data, models, ensemble, test_start_year, plot: bool = Fals
             linewidth=2,
             markersize=6,
         )
-
         # Align years for each model
         for name, model in [
             ("LSTM", models[0]),
@@ -360,7 +347,6 @@ def visualize_results(data, models, ensemble, test_start_year, plot: bool = Fals
             markersize=6,
             color="red",
         )
-
         ax1.axvline(test_start_year - 0.5, color="black", linestyle="--", alpha=0.5)
         ax1.set_xlabel("Year", fontsize=12, fontweight="bold")
         ax1.set_ylabel("CO₂ Emissions (Billion Tons)", fontsize=12, fontweight="bold")
@@ -370,7 +356,6 @@ def visualize_results(data, models, ensemble, test_start_year, plot: bool = Fals
         ax2 = axes[0, 1]
         model_names = ["LSTM", "XGBoost", "SARIMA", "Ensemble"]
         maes = [m["mae"] / 1e9 for m in models] + [ensemble["mae"] / 1e9]
-
         bars = ax2.bar(
             model_names,
             maes,
@@ -404,9 +389,7 @@ def visualize_results(data, models, ensemble, test_start_year, plot: bool = Fals
         ax3.set_title("Ensemble Residuals", fontsize=14, fontweight="bold")
         # Plot 4: Error distribution
         ax4 = axes[1, 1]
-        ax4.hist(
-            residuals / 1e9, bins=10, color="#9b59b6", alpha=0.7, edgecolor="black"
-        )
+        ax4.hist(residuals / 1e9, bins=10, color="#9b59b6", alpha=0.7, edgecolor="black")
         ax4.axvline(0, color="red", linestyle="--", linewidth=2)
         ax4.set_xlabel("Residual (Billion Tons)", fontsize=12, fontweight="bold")
         ax4.set_ylabel("Frequency", fontsize=12, fontweight="bold")
@@ -419,36 +402,27 @@ def visualize_results(data, models, ensemble, test_start_year, plot: bool = Fals
 def main():
     """Main execution"""
     logger.info("TIME SERIES FORECASTING - PRODUCTION RUN")
-
     # Load data
     data = load_and_prepare_data()
-
     # Split train/test
     train = data[data["year"] <= TRAIN_END_YEAR]
     test = data[data["year"] >= TEST_START_YEAR]
-
     logger.info(f"\nTrain: {len(train)} years | Test: {len(test)} years")
-
     # Train models
     lstm_results = train_lstm(train, test)
     xgb_results = train_xgboost(train, test)
     sarima_results = train_sarima(train, test)
-
     # Ensemble
     models = [lstm_results, xgb_results, sarima_results]
     ensemble_results = create_ensemble(models)
-
     # Visualize
     visualize_results(data, models, ensemble_results, TEST_START_YEAR)
-
     # Summary
     logger.info("=== RESULTS SUMMARY ===")
     logger.info(
         f"{'Model':<15} {'MAE (B tons)':<15} {'RMSE (B tons)':<15} {'Improvement vs Best Single'}"
     )
-
     best_single_mae = min(m["mae"] for m in models)
-
     for name, model in [
         ("LSTM", lstm_results),
         ("XGBoost", xgb_results),
@@ -466,7 +440,6 @@ def main():
         )
 
     logger.info("✓ Complete!")
-
     return {
         "lstm": lstm_results,
         "xgboost": xgb_results,

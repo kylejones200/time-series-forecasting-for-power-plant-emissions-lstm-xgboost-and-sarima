@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,9 +13,7 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 np.random.seed(42)
 
@@ -28,7 +25,7 @@ class Config:
     csv_path: str = "emissions.csv"
     time_col: str = "date"
     target_col: str = "emissions"
-    feature_cols: Tuple[str, ...] = ()
+    feature_cols: tuple[str, ...] = ()
     freq: str = "D"
     n_splits: int = 5
 
@@ -100,7 +97,6 @@ def fit_eval_rf(df: pd.DataFrame, cfg: Config, plot: bool = False):
     feat_df = make_lag_features(series, cfg.target_col).dropna()
     X = feat_df.drop(columns=[cfg.target_col]).values
     y = feat_df[cfg.target_col].values
-
     tscv = TimeSeriesSplit(n_splits=cfg.n_splits)
     metrics = []
     last = None
@@ -114,7 +110,6 @@ def fit_eval_rf(df: pd.DataFrame, cfg: Config, plot: bool = False):
         "RF mean metrics:",
         {k: float(np.mean([m[k] for m in metrics])) for k in metrics[0]},
     )
-
     if last is not None:
         model, tr, te = last
         idx = feat_df.index
@@ -130,13 +125,10 @@ def fit_eval_rf(df: pd.DataFrame, cfg: Config, plot: bool = False):
         signalplot.save("power_rf_last_fold.png")
 
 
-def fit_eval_sarimax(
-    df: pd.DataFrame, cfg: Config, order=(1, 1, 1), seasonal_order=(0, 0, 0, 0)
-):
+def fit_eval_sarimax(df: pd.DataFrame, cfg: Config, order=(1, 1, 1), seasonal_order=(0, 0, 0, 0)):
     y = df[[cfg.target_col]].asfreq(cfg.freq).dropna()[cfg.target_col]
     tr_idx, te_idx = chrono_split_index(len(y), test_size=0.2)
     y_tr, y_te = y.iloc[tr_idx], y.iloc[te_idx]
-
     model = sm.tsa.statespace.SARIMAX(
         y_tr,
         order=order,
@@ -148,7 +140,6 @@ def fit_eval_sarimax(
     yhat = res.forecast(steps=len(y_te))
     m = eval_regression(y_te.values, yhat.values)
     logger.info("SARIMAX test metrics:", m)
-
     if plot:
         plt.figure(figsize=(9, 4))
         plt.plot(y_tr.index, y_tr.values, label="Train")

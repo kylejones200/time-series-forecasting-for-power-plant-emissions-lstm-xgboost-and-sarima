@@ -12,9 +12,7 @@ from darts.models import RNNModel
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import TimeSeriesSplit
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 np.random.seed(42)
 signalplot.apply(font_family="serif")
@@ -64,9 +62,7 @@ def load_series(cfg: Config) -> TimeSeries:
     df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d", errors="coerce")
     df["value"] = pd.to_numeric(df["value"], errors="coerce").astype("float32")
     df = df.dropna().sort_values("date")
-    ts = TimeSeries.from_dataframe(
-        df, time_col="date", value_cols=["value"], freq=cfg.freq
-    )
+    ts = TimeSeries.from_dataframe(df, time_col="date", value_cols=["value"], freq=cfg.freq)
     return ts
 
 
@@ -80,9 +76,7 @@ def rolling_origin_lstm(ts: TimeSeries, cfg: Config):
         end = tr[-1]
         y_tr = ts.drop_after(ts.time_index[end])
         future = ts.split_after(ts.time_index[end])[1]
-        y_te = future.drop_after(
-            future.time_index[min(cfg.horizon - 1, len(future) - 1)]
-        )
+        y_te = future.drop_after(future.time_index[min(cfg.horizon - 1, len(future) - 1)])
         if len(y_te) == 0:
             continue
         model = RNNModel(
@@ -115,17 +109,14 @@ def main(plot: bool = False):
     ts = load_series(cfg)
     mean_mae, _ = rolling_origin_lstm(ts, cfg)
     logger.info(f"LSTM mean MAE: {mean_mae}")
-
     # Tufte-style: fit on data through Dec 2024, forecast Jan–Aug 2025
     s = ts.to_series()
     start_2024 = pd.Period("2024-01", freq="M").start_time + pd.offsets.MonthBegin(0)
     end_2024 = pd.Period("2024-12", freq="M").start_time + pd.offsets.MonthBegin(0)
     jan_2025 = pd.Period("2025-01", freq="M").start_time + pd.offsets.MonthBegin(0)
     aug_2025 = pd.Period("2025-08", freq="M").start_time + pd.offsets.MonthBegin(0)
-
     y_hist = s.loc[start_2024:end_2024]
     y_act = s.loc[jan_2025:aug_2025]
-
     # Refit LSTM on training segment (up to Dec 2024)
     ts_train = TimeSeries.from_times_and_values(
         s.loc[:end_2024].index, s.loc[:end_2024].values, freq=cfg.freq
@@ -152,7 +143,6 @@ def main(plot: bool = False):
     model.fit(ts_train_s)
     fc_s = model.predict(len(pd.period_range("2025-01", "2025-08", freq="M")))
     fc = scaler.inverse_transform(fc_s)
-
     # Light uncertainty band from seasonal differences std
     seas_diff = s.loc[:end_2024].diff(12).dropna()
     sigma = float(seas_diff.std(ddof=1)) if len(seas_diff) else 0.0
@@ -163,7 +153,6 @@ def main(plot: bool = False):
     lower = TimeSeries.from_times_and_values(
         f_idx, fc.values().ravel() - 1.96 * sigma, freq=cfg.freq
     )
-
     # Plot
     if plot:
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -179,14 +168,12 @@ def main(plot: bool = False):
             linewidth=0,
         )
         ax.plot(f_idx, fc.values().ravel(), color="#000000", lw=2.0)
-
         from matplotlib.ticker import MaxNLocator, StrMethodFormatter
 
         ax.yaxis.set_major_locator(MaxNLocator(4))
         ax.yaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
-
         if len(y_hist):
             ax.annotate(
                 "History (2024)",
@@ -219,7 +206,6 @@ def main(plot: bool = False):
             ha="left",
             color="#000000",
         )
-
         ax.set_title("EIA Net Generation — LSTM forecast Jan–Aug 2025")
         ax.set_xlabel("")
         ax.grid(False)

@@ -1,8 +1,11 @@
 import logging
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 """
@@ -10,10 +13,6 @@ Visualization script for Load Forecasting Machine Learning Blog
 Generates publication-quality figures at 300 DPI with Edward Tufte-inspired minimalist style
 """
 
-import matplotlib.dates as mdates
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 
 
 def generate_architecture_diagram(plot: bool = False):
@@ -23,7 +22,6 @@ def generate_architecture_diagram(plot: bool = False):
 
     fig, ax = plt.subplots(figsize=(14, 8))
     ax.axis("off")
-
     # Data sources layer
     data_sources = [
         {"name": "EIA Form 930\nHourly Load Data", "x": 1, "color": "#2b2b2b"},
@@ -31,7 +29,6 @@ def generate_architecture_diagram(plot: bool = False):
         {"name": "EAGLE-I\nOutage Data", "x": 6, "color": "#2b2b2b"},
         {"name": "Census ACS\nDemographics", "x": 8.5, "color": "#2b2b2b"},
     ]
-
     y_data = 7
     for source in data_sources:
         rect = plt.Rectangle(
@@ -77,7 +74,6 @@ def generate_architecture_diagram(plot: bool = False):
         color="white",
         weight="bold",
     )
-
     # Model training layer
     y_models = 3
     models = [
@@ -85,7 +81,6 @@ def generate_architecture_diagram(plot: bool = False):
         {"name": "LightGBM\nAdvanced", "x": 4.5, "color": "#696969"},
         {"name": "Ensemble\nFusion", "x": 7.5, "color": "#a0a0a0"},
     ]
-
     for model in models:
         rect = plt.Rectangle(
             (model["x"], y_models),
@@ -129,7 +124,6 @@ def generate_architecture_diagram(plot: bool = False):
         color="white",
         weight="bold",
     )
-
     # Output layer
     y_output = 0
     outputs = [
@@ -138,7 +132,6 @@ def generate_architecture_diagram(plot: bool = False):
         {"name": "Scenario\nAnalysis", "x": 6},
         {"name": "API\nEndpoints", "x": 8.5},
     ]
-
     for output in outputs:
         rect = plt.Rectangle(
             (output["x"], y_output),
@@ -186,7 +179,6 @@ def generate_architecture_diagram(plot: bool = False):
         ec="black",
         linewidth=1.5,
     )
-
     for model in models:
         ax.arrow(
             model["x"] + 1,
@@ -202,7 +194,6 @@ def generate_architecture_diagram(plot: bool = False):
 
     ax.set_xlim(0, 11)
     ax.set_ylim(-0.5, 8.5)
-
     ax.text(
         5.5,
         8.7,
@@ -211,11 +202,8 @@ def generate_architecture_diagram(plot: bool = False):
         fontsize=14,
         weight="bold",
     )
-
     plt.tight_layout()
-    plt.savefig(
-        "01_load_forecasting_architecture.png", bbox_inches="tight", dpi=300
-    )
+    plt.savefig("01_load_forecasting_architecture.png", bbox_inches="tight", dpi=300)
     logger.info("✓ Generated: 01_load_forecasting_architecture.png")
     plt.close()
 
@@ -227,7 +215,6 @@ def generate_training_pipeline(plot: bool = False):
 
     fig = plt.figure(figsize=(14, 10))
     gs = fig.add_gridspec(3, 2, hspace=0.3, wspace=0.3)
-
     # Historical data
     ax1 = fig.add_subplot(gs[0, :])
     dates = pd.date_range("2024-01-01", periods=24 * 30, freq="H")
@@ -237,7 +224,6 @@ def generate_training_pipeline(plot: bool = False):
         + 3000 * np.sin(np.arange(len(dates)) * 2 * np.pi / (24 * 7))
         + np.random.normal(0, 1000, len(dates))
     )
-
     ax1.plot(
         dates,
         load,
@@ -251,7 +237,6 @@ def generate_training_pipeline(plot: bool = False):
     ax1.set_ylabel("Load (MW)", fontsize=10)
     ax1.xaxis.set_major_formatter(mdates.DateFormatter("%m/%d"))
     ax1.legend(loc="upper right")
-
     # Feature importance (LightGBM)
     ax2 = fig.add_subplot(gs[1, 0])
     features = [
@@ -266,7 +251,6 @@ def generate_training_pipeline(plot: bool = False):
     ]
     importance = [0.28, 0.22, 0.15, 0.12, 0.10, 0.06, 0.04, 0.03]
     colors = ["#696969" if i < 3 else "#696969" for i in range(len(features))]
-
     ax2.barh(features, importance, color=colors, edgecolor="black", linewidth=1)
     ax2.set_xlabel("Feature Importance", fontsize=10)
     ax2.set_title("LightGBM Feature Importance", fontsize=11, weight="bold")
@@ -279,10 +263,8 @@ def generate_training_pipeline(plot: bool = False):
     models = ["ARIMA", "LightGBM", "Ensemble"]
     mape = [4.2, 2.8, 2.5]
     mae = [1050, 720, 680]
-
     x = np.arange(len(models))
     width = 0.35
-
     bars1 = ax3.bar(
         x - width / 2,
         mape,
@@ -302,7 +284,6 @@ def generate_training_pipeline(plot: bool = False):
         edgecolor="black",
         linewidth=1,
     )
-
     ax3.set_xlabel("Model Type", fontsize=10)
     ax3.set_ylabel("MAPE (%)", fontsize=10, color="#a0a0a0")
     ax3_twin.set_ylabel("MAE (MW)", fontsize=10, color="#696969")
@@ -338,10 +319,7 @@ def generate_training_pipeline(plot: bool = False):
     iterations = np.arange(1, 101)
     train_loss = 5000 * np.exp(-iterations / 20) + 600
     val_loss = 5000 * np.exp(-iterations / 20) + 800 + 200 * np.sin(iterations / 5)
-
-    ax4.plot(
-        iterations, train_loss, linewidth=2, color="#2b2b2b", label="Training Loss"
-    )
+    ax4.plot(iterations, train_loss, linewidth=2, color="#2b2b2b", label="Training Loss")
     ax4.plot(
         iterations,
         val_loss,
@@ -362,7 +340,6 @@ def generate_training_pipeline(plot: bool = False):
     ax4.set_title("Model Training Convergence", fontsize=11, weight="bold")
     ax4.legend(loc="upper right")
     ax4.set_ylim(500, 6000)
-
     # Add annotation for optimal point
     optimal_iter = 60
     ax4.annotate(
@@ -373,7 +350,6 @@ def generate_training_pipeline(plot: bool = False):
         fontsize=9,
         weight="bold",
     )
-
     plt.savefig("01_load_forecasting_training.png", bbox_inches="tight", dpi=300)
     logger.info("✓ Generated: 01_load_forecasting_training.png")
     plt.close()
@@ -386,17 +362,13 @@ def generate_performance_comparison(plot: bool = False):
 
     fig = plt.figure(figsize=(14, 10))
     gs = fig.add_gridspec(3, 2, hspace=0.35, wspace=0.3)
-
     # 24-hour forecast comparison
     ax1 = fig.add_subplot(gs[0, :])
     hours = np.arange(24)
-    actual = (
-        25000 + 8000 * np.sin(hours * 2 * np.pi / 24) + np.random.normal(0, 500, 24)
-    )
+    actual = 25000 + 8000 * np.sin(hours * 2 * np.pi / 24) + np.random.normal(0, 500, 24)
     arima = actual + np.random.normal(0, 1000, 24)
     lightgbm = actual + np.random.normal(0, 600, 24)
     ensemble = actual + np.random.normal(0, 550, 24)
-
     ax1.plot(
         hours,
         actual,
@@ -436,19 +408,16 @@ def generate_performance_comparison(plot: bool = False):
         markersize=4,
         alpha=0.8,
     )
-
     ax1.set_xlabel("Hour of Day", fontsize=10)
     ax1.set_ylabel("Load (MW)", fontsize=10)
     ax1.set_title("24-Hour Forecast Comparison", fontsize=12, weight="bold")
     ax1.legend(loc="upper right", ncol=4)
     ax1.set_xticks(hours[::3])
-
     # Scenario comparison
     ax2 = fig.add_subplot(gs[1, 0])
     scenarios = ["Baseline", "Hot Weather", "High Growth", "Demand\nResponse"]
     peak_loads = [28500, 33200, 29925, 25650]
     colors_scenario = ["#2b2b2b", "#2b2b2b", "#a0a0a0", "#696969"]
-
     bars = ax2.bar(
         scenarios,
         peak_loads,
@@ -483,7 +452,6 @@ def generate_performance_comparison(plot: bool = False):
     ax3 = fig.add_subplot(gs[1, 1])
     errors_arima = np.random.normal(0, 1000, 1000)
     errors_lgbm = np.random.normal(0, 600, 1000)
-
     ax3.hist(
         errors_arima,
         bins=40,
@@ -507,19 +475,14 @@ def generate_performance_comparison(plot: bool = False):
     ax3.set_title("Forecast Error Distribution", fontsize=11, weight="bold")
     ax3.legend()
     ax3.axvline(x=0, color="black", linestyle="--", linewidth=1.5)
-
     # Weekly forecast performance
     ax4 = fig.add_subplot(gs[2, 0])
     days = np.arange(7)
     day_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     mape_by_day = [2.5, 2.3, 2.4, 2.8, 3.2, 4.1, 3.8]
-
-    bars = ax4.bar(
-        days, mape_by_day, color="#2b2b2b", edgecolor="black", linewidth=1.5
-    )
+    bars = ax4.bar(days, mape_by_day, color="#2b2b2b", edgecolor="black", linewidth=1.5)
     bars[5].set_color("#a0a0a0")  # Highlight weekend
     bars[6].set_color("#a0a0a0")
-
     ax4.set_xlabel("Day of Week", fontsize=10)
     ax4.set_ylabel("MAPE (%)", fontsize=10)
     ax4.set_title("Forecast Accuracy by Day of Week", fontsize=11, weight="bold")
@@ -527,7 +490,6 @@ def generate_performance_comparison(plot: bool = False):
     ax4.set_xticklabels(day_labels)
     ax4.axhline(y=3.0, color="#2b2b2b", linestyle="--", linewidth=1.5, alpha=0.7)
     ax4.text(6.5, 3.1, "Target", fontsize=8, color="#2b2b2b")
-
     for bar, mape in zip(bars, mape_by_day):
         ax4.text(
             bar.get_x() + bar.get_width() / 2.0,
@@ -550,14 +512,12 @@ def generate_performance_comparison(plot: bool = False):
             [0.72, 0.95, 0.61, 0.76, 1.00],
         ]
     )
-
     im = ax5.imshow(corr_matrix, cmap="gray", aspect="auto", vmin=-1, vmax=1)
     ax5.set_xticks(np.arange(len(features_short)))
     ax5.set_yticks(np.arange(len(features_short)))
     ax5.set_xticklabels(features_short, rotation=45, ha="right")
     ax5.set_yticklabels(features_short)
     ax5.set_title("Feature Correlation Matrix", fontsize=11, weight="bold")
-
     # Add correlation values
     for i in range(len(features_short)):
         for j in range(len(features_short)):
@@ -574,21 +534,16 @@ def generate_performance_comparison(plot: bool = False):
 
     cbar = plt.colorbar(im, ax=ax5, fraction=0.046, pad=0.04)
     cbar.set_label("Correlation", fontsize=9)
-
     plt.savefig("01_load_forecasting_performance.png", bbox_inches="tight", dpi=300)
     logger.info("✓ Generated: 01_load_forecasting_performance.png")
     plt.close()
 
 
 if __name__ == "__main__":
-    logger.info(
-        "Generating visualizations for Load Forecasting Machine Learning Blog...\n"
-    )
-
+    logger.info("Generating visualizations for Load Forecasting Machine Learning Blog...\n")
     generate_architecture_diagram()
     generate_training_pipeline()
     generate_performance_comparison()
-
     logger.info("\n✓ All visualizations generated successfully!")
     logger.info("  - 01_load_forecasting_architecture.png")
     logger.info("  - 01_load_forecasting_training.png")

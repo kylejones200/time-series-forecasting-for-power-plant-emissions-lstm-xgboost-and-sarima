@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import logging
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import signalplot
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 """
@@ -13,9 +14,6 @@ Generate minimalist visualizations for Power Trading blogs (01-05).
 Uses serif fonts, clean axes, and high-quality output.
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 
 
 def apply_minimalist_style(ax):
@@ -32,10 +30,8 @@ def apply_minimalist_style(ax):
 def create_01_main(plot: bool = False):
     """Blog 01: Load forecasting profile analysis."""
     np.random.seed(42)
-
     # Generate 7 days of hourly load data
     hours = pd.date_range("2024-01-01", periods=24 * 7, freq="h")
-
     # Actual load with daily and weekly patterns
     base_load = 5000
     hour_of_day = np.array([h.hour for h in hours])
@@ -44,13 +40,10 @@ def create_01_main(plot: bool = False):
     weekly_pattern = 300 * np.sin(2 * np.pi * day_of_week / 7)
     noise = np.random.normal(0, 150, len(hours))
     actual_load = base_load + daily_pattern + weekly_pattern + noise
-
     # Forecast with small error
     forecast_load = actual_load + np.random.normal(0, 100, len(hours))
-
     if plot:
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-
         # Panel 1: Time series
         ax1.plot(hours, actual_load, color="black", linewidth=1.5, label="Actual Load")
         ax1.plot(
@@ -61,23 +54,14 @@ def create_01_main(plot: bool = False):
             linestyle="--",
             label="Forecast",
         )
-
         apply_minimalist_style(ax1)
-        ax1.set_title(
-            "Load Forecast vs Actual", fontsize=12, fontweight="bold", loc="left"
-        )
+        ax1.set_title("Load Forecast vs Actual", fontsize=12, fontweight="bold", loc="left")
         ax1.set_xlabel("Date", fontsize=10)
         ax1.set_ylabel("Load (MW)", fontsize=10)
         ax1.legend(loc="upper right", frameon=False, fontsize=9)
-
         # Panel 2: Daily profile
-        daily_avg_actual = np.array(
-            [actual_load[hour_of_day == h].mean() for h in range(24)]
-        )
-        daily_avg_forecast = np.array(
-            [forecast_load[hour_of_day == h].mean() for h in range(24)]
-        )
-
+        daily_avg_actual = np.array([actual_load[hour_of_day == h].mean() for h in range(24)])
+        daily_avg_forecast = np.array([forecast_load[hour_of_day == h].mean() for h in range(24)])
         hour_labels = range(24)
         ax2.plot(
             hour_labels,
@@ -103,16 +87,12 @@ def create_01_main(plot: bool = False):
             markeredgewidth=1.5,
             label="Forecast",
         )
-
         apply_minimalist_style(ax2)
-        ax2.set_title(
-            "Average Daily Load Profile", fontsize=12, fontweight="bold", loc="left"
-        )
+        ax2.set_title("Average Daily Load Profile", fontsize=12, fontweight="bold", loc="left")
         ax2.set_xlabel("Hour of Day", fontsize=10)
         ax2.set_ylabel("Average Load (MW)", fontsize=10)
         ax2.legend(loc="upper right", frameon=False, fontsize=9)
         ax2.set_xticks(range(0, 24, 3))
-
         signalplot.save("01_load_forecasting_main.png")
     logger.info("✓ Created: 01_load_forecasting_main.png")
 
@@ -120,48 +100,33 @@ def create_01_main(plot: bool = False):
 def create_01_accuracy(plot: bool = False):
     """Blog 01: Forecast accuracy metrics."""
     np.random.seed(42)
-
     # Simulate forecast errors over time
     days = pd.date_range("2024-01-01", periods=90, freq="D")
     mape = 2.5 + 0.5 * np.random.randn(len(days))
     mape = np.clip(mape, 0.5, 5.0)
-
     # Rolling average
     mape_smooth = pd.Series(mape).rolling(7, min_periods=1).mean()
-
     if plot:
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-
         # Panel 1: MAPE over time
         ax1.plot(days, mape, color="lightgray", linewidth=0.8, alpha=0.5)
         ax1.plot(days, mape_smooth, color="black", linewidth=2, label="7-Day Average")
-        ax1.axhline(
-            y=3.0, color="gray", linestyle="--", linewidth=1, label="Target (3%)"
-        )
-
+        ax1.axhline(y=3.0, color="gray", linestyle="--", linewidth=1, label="Target (3%)")
         apply_minimalist_style(ax1)
-        ax1.set_title(
-            "Forecast Accuracy Over Time", fontsize=12, fontweight="bold", loc="left"
-        )
+        ax1.set_title("Forecast Accuracy Over Time", fontsize=12, fontweight="bold", loc="left")
         ax1.set_xlabel("Date", fontsize=10)
         ax1.set_ylabel("MAPE (%)", fontsize=10)
         ax1.legend(loc="upper right", frameon=False, fontsize=9)
         ax1.set_ylim(0, 6)
-
         # Panel 2: Error distribution
         errors = np.random.normal(0, 100, 1000)
-
         bins = np.linspace(-400, 400, 30)
         ax2.hist(errors, bins=bins, color="white", edgecolor="black", linewidth=1.5)
         ax2.axvline(x=0, color="black", linestyle="--", linewidth=1.5)
-
         apply_minimalist_style(ax2)
-        ax2.set_title(
-            "Forecast Error Distribution", fontsize=12, fontweight="bold", loc="left"
-        )
+        ax2.set_title("Forecast Error Distribution", fontsize=12, fontweight="bold", loc="left")
         ax2.set_xlabel("Forecast Error (MW)", fontsize=10)
         ax2.set_ylabel("Frequency", fontsize=10)
-
         signalplot.save("01_load_forecasting_accuracy.png")
     logger.info("✓ Created: 01_load_forecasting_accuracy.png")
 
@@ -172,26 +137,16 @@ def create_01_accuracy(plot: bool = False):
 def create_02_main(plot: bool = False):
     """Blog 02: LMP analysis across nodes."""
     np.random.seed(42)
-
     hours = pd.date_range("2024-07-15", periods=24, freq="h")
-
     # Hub price (baseline)
-    hub_price = (
-        85
-        + 15 * np.sin(2 * np.pi * hours.hour / 24)
-        + np.random.normal(0, 3, len(hours))
-    )
-
+    hub_price = 85 + 15 * np.sin(2 * np.pi * hours.hour / 24) + np.random.normal(0, 3, len(hours))
     # Constrained node (with congestion spikes)
     constrained_price = hub_price + 20 + 40 * ((hours.hour >= 14) & (hours.hour <= 18))
     constrained_price += np.random.normal(0, 5, len(hours))
-
     # Unconstrained node (tracks hub)
     unconstrained_price = hub_price + np.random.normal(0, 2, len(hours))
-
     if plot:
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-
         # Panel 1: Price comparison
         ax1.plot(hours, hub_price, color="black", linewidth=2, label="Hub Price")
         ax1.plot(
@@ -210,21 +165,15 @@ def create_02_main(plot: bool = False):
             linestyle=":",
             label="Unconstrained Node",
         )
-
         # Highlight congestion period
         ax1.axvspan(hours[14], hours[18], alpha=0.1, color="gray", label="Congestion")
-
         apply_minimalist_style(ax1)
-        ax1.set_title(
-            "Locational Marginal Prices", fontsize=12, fontweight="bold", loc="left"
-        )
+        ax1.set_title("Locational Marginal Prices", fontsize=12, fontweight="bold", loc="left")
         ax1.set_xlabel("Hour", fontsize=10)
         ax1.set_ylabel("Price ($/MWh)", fontsize=10)
         ax1.legend(loc="upper left", frameon=False, fontsize=9)
-
         # Panel 2: Spread (arbitrage opportunity)
         spread = constrained_price - hub_price
-
         ax2.fill_between(
             hours,
             0,
@@ -236,7 +185,6 @@ def create_02_main(plot: bool = False):
         )
         ax2.plot(hours, spread, color="black", linewidth=2)
         ax2.axhline(y=0, color="black", linestyle="-", linewidth=0.8)
-
         apply_minimalist_style(ax2)
         ax2.set_title(
             "Price Spread (Constrained - Hub)",
@@ -247,7 +195,6 @@ def create_02_main(plot: bool = False):
         ax2.set_xlabel("Hour", fontsize=10)
         ax2.set_ylabel("Spread ($/MWh)", fontsize=10)
         ax2.legend(loc="upper left", frameon=False, fontsize=9)
-
         signalplot.save("02_lmp_analysis_main.png")
     logger.info("✓ Created: 02_lmp_analysis_main.png")
 
@@ -261,9 +208,7 @@ def create_02_main(plot: bool = False):
 def create_03_main(plot: bool = False):
     """Blog 03: Generation dispatch optimization."""
     np.random.seed(42)
-
     hours = range(24)
-
     # Generation mix (stacked)
     coal = np.full(24, 2000)  # Baseload
     nuclear = np.full(24, 1500)  # Baseload
@@ -271,10 +216,8 @@ def create_03_main(plot: bool = False):
     gas = np.clip(gas, 0, 1500)
     wind = 300 + 200 * np.random.rand(24)
     solar = 400 * np.maximum(0, np.sin(np.pi * (np.array(hours) - 6) / 12))
-
     if plot:
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-
         # Panel 1: Stacked generation
         ax1.fill_between(
             hours,
@@ -325,16 +268,12 @@ def create_03_main(plot: bool = False):
             hatch="...",
             label="Solar",
         )
-
         apply_minimalist_style(ax1)
-        ax1.set_title(
-            "Generation Dispatch Mix", fontsize=12, fontweight="bold", loc="left"
-        )
+        ax1.set_title("Generation Dispatch Mix", fontsize=12, fontweight="bold", loc="left")
         ax1.set_xlabel("Hour of Day", fontsize=10)
         ax1.set_ylabel("Generation (MW)", fontsize=10)
         ax1.legend(loc="upper left", frameon=False, fontsize=9)
         ax1.set_xticks(range(0, 24, 3))
-
         # Panel 2: Marginal cost
         marginal_cost = np.where(
             np.array(hours) < 8,
@@ -346,7 +285,6 @@ def create_03_main(plot: bool = False):
             ),
         )  # Back to coal
         marginal_cost = marginal_cost + np.random.normal(0, 2, 24)
-
         ax2.plot(
             hours,
             marginal_cost,
@@ -358,15 +296,11 @@ def create_03_main(plot: bool = False):
             markeredgecolor="black",
             markeredgewidth=1.5,
         )
-
         apply_minimalist_style(ax2)
-        ax2.set_title(
-            "System Marginal Cost", fontsize=12, fontweight="bold", loc="left"
-        )
+        ax2.set_title("System Marginal Cost", fontsize=12, fontweight="bold", loc="left")
         ax2.set_xlabel("Hour of Day", fontsize=10)
         ax2.set_ylabel("Marginal Cost ($/MWh)", fontsize=10)
         ax2.set_xticks(range(0, 24, 3))
-
         signalplot.save("03_generation_dispatch_main.png")
     logger.info("✓ Created: 03_generation_dispatch_main.png")
 
@@ -379,20 +313,15 @@ def create_03_main(plot: bool = False):
 def create_04_main(plot: bool = False):
     """Blog 04: Power options payoff diagrams."""
     np.random.seed(42)
-
     # Strike prices and spot prices
     strike = 100
     spots = np.linspace(0, 200, 100)
-
     # Call option payoff
     call_payoff = np.maximum(spots - strike, 0) - 8  # 8 premium
-
     # Put option payoff
     put_payoff = np.maximum(strike - spots, 0) - 5  # 5 premium
-
     if plot:
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-
         # Panel 1: Call option
         ax1.plot(spots, call_payoff, color="black", linewidth=2, label="Call Payoff")
         ax1.axhline(y=0, color="gray", linestyle="--", linewidth=1)
@@ -403,16 +332,12 @@ def create_04_main(plot: bool = False):
             linewidth=1,
             label=f"Strike (${strike})",
         )
-        ax1.fill_between(
-            spots, 0, call_payoff, where=(call_payoff > 0), color="gray", alpha=0.2
-        )
-
+        ax1.fill_between(spots, 0, call_payoff, where=(call_payoff > 0), color="gray", alpha=0.2)
         apply_minimalist_style(ax1)
         ax1.set_title("Call Option Payoff", fontsize=12, fontweight="bold", loc="left")
         ax1.set_xlabel("Spot Price ($/MWh)", fontsize=10)
         ax1.set_ylabel("Profit/Loss ($/MWh)", fontsize=10)
         ax1.legend(loc="upper left", frameon=False, fontsize=9)
-
         # Panel 2: Put option
         ax2.plot(spots, put_payoff, color="black", linewidth=2, label="Put Payoff")
         ax2.axhline(y=0, color="gray", linestyle="--", linewidth=1)
@@ -423,16 +348,12 @@ def create_04_main(plot: bool = False):
             linewidth=1,
             label=f"Strike (${strike})",
         )
-        ax2.fill_between(
-            spots, 0, put_payoff, where=(put_payoff > 0), color="gray", alpha=0.2
-        )
-
+        ax2.fill_between(spots, 0, put_payoff, where=(put_payoff > 0), color="gray", alpha=0.2)
         apply_minimalist_style(ax2)
         ax2.set_title("Put Option Payoff", fontsize=12, fontweight="bold", loc="left")
         ax2.set_xlabel("Spot Price ($/MWh)", fontsize=10)
         ax2.set_ylabel("Profit/Loss ($/MWh)", fontsize=10)
         ax2.legend(loc="upper right", frameon=False, fontsize=9)
-
         signalplot.save("04_power_options_main.png")
     logger.info("✓ Created: 04_power_options_main.png")
 
@@ -445,10 +366,8 @@ def create_04_main(plot: bool = False):
 def create_05_main(plot: bool = False):
     """Blog 05: Risk management framework."""
     np.random.seed(42)
-
     # Simulate portfolio VaR over time
     days = pd.date_range("2024-01-01", periods=90, freq="D")
-
     # VaR (95% and 99%)
     var_95 = (
         250
@@ -456,16 +375,13 @@ def create_05_main(plot: bool = False):
         + np.random.normal(0, 20, len(days))
     )
     var_99 = var_95 * 1.5 + np.random.normal(0, 10, len(days))
-
     # Actual losses (mostly within VaR, occasional breach)
     actual_loss = var_95 * 0.6 + np.random.normal(0, 50, len(days))
     # Add a few breaches
     actual_loss[20] = var_99[20] * 1.2
     actual_loss[55] = var_99[55] * 1.1
-
     if plot:
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-
         # Panel 1: VaR over time
         ax1.fill_between(days, 0, var_95, color="lightgray", alpha=0.5, label="95% VaR")
         ax1.fill_between(days, var_95, var_99, color="gray", alpha=0.3, label="99% VaR")
@@ -479,7 +395,6 @@ def create_05_main(plot: bool = False):
             label="Daily Loss",
             zorder=5,
         )
-
         # Highlight breaches
         breaches = actual_loss > var_99
         if breaches.any():
@@ -495,13 +410,10 @@ def create_05_main(plot: bool = False):
             )
 
         apply_minimalist_style(ax1)
-        ax1.set_title(
-            "Value at Risk Monitoring", fontsize=12, fontweight="bold", loc="left"
-        )
+        ax1.set_title("Value at Risk Monitoring", fontsize=12, fontweight="bold", loc="left")
         ax1.set_xlabel("Date", fontsize=10)
         ax1.set_ylabel("Loss ($1000s)", fontsize=10)
         ax1.legend(loc="upper left", frameon=False, fontsize=9)
-
         # Panel 2: Risk decomposition
         categories = [
             "Market\nRisk",
@@ -510,25 +422,18 @@ def create_05_main(plot: bool = False):
             "Basis\nRisk",
         ]
         risk_values = [45, 25, 15, 15]
-
         y_pos = np.arange(len(categories))
-        bars = ax2.barh(
-            y_pos, risk_values, color="white", edgecolor="black", linewidth=1.5
-        )
-
+        bars = ax2.barh(y_pos, risk_values, color="white", edgecolor="black", linewidth=1.5)
         # Add value labels
         for i, (bar, val) in enumerate(zip(bars, risk_values)):
             ax2.text(val + 1, i, f"{val}%", va="center", fontsize=10, fontweight="bold")
 
         apply_minimalist_style(ax2)
-        ax2.set_title(
-            "Portfolio Risk Decomposition", fontsize=12, fontweight="bold", loc="left"
-        )
+        ax2.set_title("Portfolio Risk Decomposition", fontsize=12, fontweight="bold", loc="left")
         ax2.set_xlabel("Risk Contribution (%)", fontsize=10)
         ax2.set_yticks(y_pos)
         ax2.set_yticklabels(categories, fontsize=10)
         ax2.set_xlim(0, 60)
-
         signalplot.save("05_risk_management_main.png")
     logger.info("✓ Created: 05_risk_management_main.png")
 
@@ -541,7 +446,6 @@ def main():
     signalplot.apply(font_family="serif")
     logger.info("POWER TRADING BLOGS (01-05) - VISUALIZATION GENERATION")
     logger.info()
-
     logger.info("Creating visualizations...")
     create_01_main()
     create_01_accuracy()
@@ -549,7 +453,6 @@ def main():
     create_03_main()
     create_04_main()
     create_05_main()
-
     logger.info()
     logger.info("All visualizations created successfully!")
 

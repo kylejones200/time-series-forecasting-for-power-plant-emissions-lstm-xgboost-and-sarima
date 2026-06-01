@@ -11,14 +11,32 @@ But which forecasting method works best? Should you use deep learning LSTMs, gra
 
 The power sector accounts for approximately 25% of U.S. greenhouse gas emissions. This matters to several groups of decision makers.
 
-## About
 
-Place the code for this article in this repository.
-The original article export is saved as `article.md`.
 
-## Files
+## Rust performance port
 
-Add your `.ipynb`, `.py`, `.yaml`, `.js`, `.ts`, or other project files here.
+Side-by-side **Python vs Rust** implementation of the numeric hot loop — lag feature matrix. Reference PyO3 benchmark: **see `benchmark_rust.py`** on a release build (local machine; run `benchmark_rust.py` to reproduce).
+
+| Path | Role |
+|------|------|
+| `src/compute_kernel.py` | Python/numpy reference kernel |
+| `rust/core/` | Pure Rust library |
+| `rust/py/` | PyO3 bindings |
+| `rust/bench/` | Standalone CLI benchmark |
+| `benchmark_rust.py` | Python vs Rust timing + correctness check |
+
+```bash
+# Rust-only CLI benchmark
+cd rust && cargo run --release -p time_series_forecasting_for_power_plant_emissions_lstm_xgboost_and_sarima_bench
+
+# Python vs Rust (PyO3)
+pip install maturin numpy
+maturin develop --release -m rust/py/Cargo.toml
+python benchmark_rust.py
+```
+
+Python ML training, solvers, and orchestration stay in Python; Rust targets the numeric hot loops. Stochastic generators validate output shapes; deterministic kernels match at tight floating-point tolerance.
+
 
 ## Disclaimer
 

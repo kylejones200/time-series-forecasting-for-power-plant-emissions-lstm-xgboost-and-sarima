@@ -1,0 +1,13 @@
+[package]
+name = "time_series_forecasting_for_power_plant_emissions_lstm_xgboost_and_sarima_bench"
+description = "Standalone Rust benchmark (no Python)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "bench"
+path = "src/main.rs"
+
+[dependencies]
+time_series_forecasting_for_power_plant_emissions_lstm_xgboost_and_sarima_core = { path = "../core" }

@@ -1,0 +1,9 @@
+[package]
+name = "time_series_forecasting_for_power_plant_emissions_lstm_xgboost_and_sarima_core"
+description = "Lag feature matrix builder (row-major flatten)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"
